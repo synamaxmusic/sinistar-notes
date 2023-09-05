@@ -397,3 +397,14 @@ Difficulty Timer seems to always start at 5 and count up.
 Populations for all the different entities seem to be affected by each other.
 Setting 7F to one of the unused bytes for Sini-bombs or Crystals floods the
 sector with nothing.  Eventually there's not enough room for all the enemies.
+
+;;------------------------------------------------------------------------------
+
+			***MAME CHEAT SHEET***
+
+maincpu.rw@7abe = 00xx
+maincpu.rw@7ac1 = 00xx
+maincpu.rw@7ac4 = 00xx
+maincpu.rw@7ac7 = 00xx
+maincpu.rw@7aca = 00xx
+
