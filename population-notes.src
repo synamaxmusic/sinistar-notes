@@ -1,0 +1,391 @@
+Sinistar is noted for its intense difficulty, a request made by
+Williams Electronics's upper management that the devs begrudgingly made.
+
+The enemies spawn into the game using Initial Populations tables.  This
+is where the game's balancing issues are located.
+
+The tables can be found at address $7ABE.  Here is a source code excerpt for
+N1ALL.SRC, located in the FALS folder:
+
+*
+*			Initial Population table
+*
+*	SAM - you can put those new tables here
+*
+*
+*			Initial Population tables
+* 	Population tables have one-byte current population, two byte
+*	desired population (LSB is fractional part) for each CD in
+*	Scanner Object Char. Desc. Table (see ScOCDT)
+*	Sequence of waves: InPop0,2,3,4,1,2,3,4,1,2,3,4 etc.
+*
+
+*		InPop0 - Initial population for first wave only
+
+InPop0	fcb	0,6,0		* Workers
+	fcb	0,0,0		* Warriors
+	fcb	0,10.,0		* Type 1 planets
+	fcb	0,2,0		* Type 2 planets
+	fcb	0,2,0		* Type 3 planets
+	fcb	0,2,0		* Type 4 planets
+	fcb	0,2,0		* Type 5 planets
+*			NOTE: objects past this point are NOT initialized
+*				automatically, but are included for con-
+*				sistency, and to zero out the current values
+	fcb	0,0,0		* SiniBombs
+	fcb	0,0,0		* Crystals
+	fcb	0,1,0		* SiniStar
+	fcb	0,1,0		* Player
+
+IP0End	rmb	0		* Marks end of table
+*
+*
+*		Difficulty increase figures for this population
+*
+InDif0	fdb	DTime
+	fcb	6
+	fdb	.PWor		* Workers
+	fcb	10
+	fdb	.PWar		* Warriors
+	fcb	-8
+	fdb	.PPl1		* Plan1's
+	fcb	10
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+
+ID0End	rmb	0		* Marks end of diff. table
+
+*		InPop1 - Void Zone
+
+InPop1	fcb	6		* Workers
+	fcb	8		* Warriors
+	fcb	1		* Type 1 planets
+	fcb	1		* Type 2 planets
+	fcb	1		* Type 3 planets
+	fcb	1		* Type 4 planets
+	fcb	3		* Type 5 planets
+*			NOTE: objects past this point are NOT initialized
+*				automatically, but are included for con-
+*				sistency, and to zero out the current values
+	fcb	0		* SiniBombs
+	fcb	0		* Crystals
+	fcb	1		* SiniStar
+	fcb	1		* Player
+*
+*
+*		Difficulty increase figures for this population
+*
+	fdb	DTime
+	fcb	6
+	fdb	.PWor		* Workers
+	fcb	10
+	fdb	.PWar		* Warriors
+	fcb	-1
+	fdb	.PPl1		* Plan1's
+	fcb	-1
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+
+ID1End	rmb	0		* Marks end of diff. table
+
+*		InPop2 - Worker Zone
+
+InPop2	fcb	10		* Workers
+	fcb	3		* Warriors
+	fcb	10.		* Type 1 planets
+	fcb	2		* Type 2 planets
+	fcb	2		* Type 3 planets
+	fcb	2		* Type 4 planets
+	fcb	2		* Type 5 planets
+*			NOTE: objects past this point are NOT initialized
+*				automatically, but are included for con-
+*				sistency, and to zero out the current values
+	fcb	0		* SiniBombs
+	fcb	0		* Crystals
+	fcb	1		* SiniStar
+	fcb	1		* Player
+*
+*
+*		Difficulty increase figures for this population
+*
+	fdb	DTime
+	fcb	10.
+	fdb	.PWor		* Workers
+	fcb	10
+	fdb	.PWar		* Warriors
+	fcb	-8
+	fdb	.PPl1		* Plan1's
+	fcb	10
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+
+*		InPop3 - Warrior Zone
+
+InPop3	fcb	4		* Workers
+	fcb	10.		* Warriors
+	fcb	10.		* Type 1 planets
+	fcb	2		* Type 2 planets
+	fcb	2		* Type 3 planets
+	fcb	2		* Type 4 planets
+	fcb	2		* Type 5 planets
+*			NOTE: objects past this point are NOT initialized
+*				automatically, but are included for con-
+*				sistency, and to zero out the current values
+	fcb	0		* SiniBombs
+	fcb	0		* Crystals
+	fcb	1		* SiniStar
+	fcb	1		* Player
+*
+*
+*		Difficulty increase figures for this population
+*
+	fdb	DTime
+	fcb	4
+	fdb	.PWor		* Workers
+	fcb	10
+	fdb	.PWar		* Warriors
+	fcb	-8
+	fdb	.PPl1		* Plan1's
+	fcb	10
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+
+*		InPop4 - Planetoid Zone
+
+InPop4	fcb	6		* Workers
+	fcb	8		* Warriors
+	fcb	10		* Type 1 planets
+	fcb	2		* Type 2 planets
+	fcb	10		* Type 3 planets
+	fcb	2		* Type 4 planets
+	fcb	5		* Type 5 planets
+*			NOTE: objects past this point are NOT initialized
+*				automatically, but are included for con-
+*				sistency, and to zero out the current values
+	fcb	0		* SiniBombs
+	fcb	0		* Crystals
+	fcb	1		* SiniStar
+	fcb	1		* Player
+*
+*
+*		Difficulty increase figures for this population
+*
+	fdb	DTime
+	fcb	6
+	fdb	.PWor		* Workers
+	fcb	10.
+	fdb	.PWar		* Warriors
+	fcb	10
+	fdb	.PPl1		* Plan1's
+	fcb	10
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+
+
+
+*
+*		DEMO Population figures
+*
+
+InPopD	fcb	0,2,0		* Workers
+	fcb	0,0,0		* Warriors
+	fcb	0,4,0		* Type 1 planets
+	fcb	0,4,0		* Type 2 planets
+	fcb	0,4,0		* Type 3 planets
+	fcb	0,4,0		* Type 4 planets
+	fcb	0,5,0		* Type 5 planets
+*			NOTE: objects past this point are NOT initialized
+*				automatically, but are included for con-
+*				sistency, and to zero out the current values
+	fcb	0,0,0		* SiniBombs
+	fcb	0,0,0		* Crystals
+	fcb	0,1,0		* SiniStar
+	fcb	0,1,0		* Player
+*
+*
+*		Difficulty increase figures for this population
+*
+	fdb	DTime
+	fcb	6
+	fdb	.PWor		* Workers
+	fcb	1
+	fdb	.PWar		* Warriors
+	fcb	1
+	fdb	.PPl1		* Plan1's
+	fcb	1
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+*
+InOEnd	rmb	0		* End of table
+
+.PPL1	fdb	Pop+7		* Type 1 planet difficulty table root
+	fcb	0
+
+.PPL3	fdb	Pop+0D		* Type 3 planet difficulty table root
+	fcb	0
+
+;;------------------------------------------------------------------------------
+
+Each InPop table is followed by a Difficulty Increase table (let's call this "Diff").
+
+There are five waves and they are sequenced like this:
+InPop0, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4,etc.
+
+InPop0 = First Zone
+InPop1 = Void Zone (last wave)
+InPop2 = Worker Zone
+InPop3 = Warrior Zone
+InPop4 = Planetoid Zone
+
+To save space, only 2 population tables (First Zone and Attract Demo) have the
+additional padding needed when these tables are copied over to memory.  
+
+Here's what the first table looks like at $7ABE:
+
+InPop0: 00 06 00	;Workers
+        00 00 00	;Warriors
+        00 0A 00	;Planetoid 1
+        00 02 00	;Planetoid 2
+        00 02 00	;Planetoid 3
+        00 02 00	;Planetoid 4
+        00 02 00	;Planetoid 5
+        00 00 00	;Sini-Bombs
+        00 00 00	;Crystals
+        00 01 00	;SiniStar
+        00 01 00	;Player
+
+The Diff table has the two-byte address pointer, followed by the value.
+ 
+Diff0:  A0 19 06 	;Difficulty Timer
+        59 A4 10 	;Workers Pop Increase
+        59 A7 F8 	;Warriors Pop Increase
+        7B AA 10 	;Planetoid 1 Pop Increase
+        7B AD 03 	;Planetoid 3 Pop Increase
+        59 AA 7F 	;Planetoid 5 Pop Increase
+        59 AD 00	;Warrior Aggression (WAgg)
+
+
+;;------------------------------------------------------------------------------
+
+WITT/RAMRICH.SRC has a section labled as PLAYSAV that contains the RAM definitions.
+
+*****
+*
+*	PPPP   L       AAA   Y   Y   SSSS   AAA   V   V  EEEEE
+*	P   P  L      A   A   Y Y   S      A   A  V   V  E
+*	PPPP   L      AAAAA    Y     SSS   AAAAA  V   V  EEEE
+*	P      L      A   A    Y        S  A   A   V V   E
+*	P      LLLLL  A   A    Y    SSSS   A   A    V    EEEEE
+*
+*****
+	PUSHORG	PlaySav
+DTime		rmb	2	* Difficulty Timer
+Pop		rmb	21	*((CDTEnd-ScoCdt)*3)/2	* Pop. of sector - each 3 bytes
+*				  corresponds to a C.D. - first byte is
+*				  current Population, next two are desired pop.
+WAgg		rmb	2		* Warrior aggression factor
+SiniKills	rmb	1	* The number of Sinistars killed.
+
+;;------------------------------------------------------------------------------
+
+			***POPULATION RAM STRUCTURE***
+   
+$A019 starts the section of memory dedicated to controlling the populations and difficulty
+timer during gameplay.
+
+$A019 = Difficulty Timer (2 BYTES)
+
+$A01B = Worker Current Pop (Current enemies in the sector)
+$A01C = Worker Desired Pop (The value found in the InPop table)
+$A01D = Worker Desired Pop (Fractional byte, grows with every Difficulty timer tick)
+
+$A01E = Warrior Current Pop
+$A01F = Warrior Desired Pop
+$A020 = Warrior Desired Pop (Fractional byte)
+
+$A021 = Planetoid 1 Current Pop
+$A022 = Planetoid 1 Desired Pop 
+$A023 = Planetoid 1 Desired Pop (Fractional byte)
+
+$A024 = Planetoid 2 Current Pop
+$A025 = Planetoid 2 Desired Pop
+$A026 = Planetoid 2 Desired Pop (Fractional byte)
+
+$A027 = Planetoid 3 Current Pop
+$A028 = Planetoid 3 Desired Pop
+$A029 = Planetoid 3 Desired Pop (Fractional byte)
+
+$A02A = Planetoid 4 Current Pop
+$A02B = Planetoid 4 Desired Pop
+$A02C = Planetoid 4 Desired Pop (Fractional byte)
+
+$A02D = Planetoid 5 Current Pop
+$A02E = Planetoid 5 Desired Pop
+$A02F = Planetoid 5 Desired Pop (Fractional byte)
+
+$A030 = Sini-Bombs Current Pop
+$A031 = Sini-Bombs Desired Pop
+$A032 = Sini-Bombs Desired Pop (Fractional byte)
+
+$A033 = Crystals Current Pop
+$A034 = Crystals Desired Pop
+$A035 = Crystals Desired Pop (Fractional byte)
+
+$A036 = Sinistar Current Pop
+$A037 = Sinistar Desired Pop
+$A038 = Sinistar Desired Pop (Fractional byte)
+
+$A039 = Player Current Pop
+$A03A = Player Desired Pop
+$A03B = Player Desired Pop (Fractional byte)
+
+$A03C = Current Warrior Aggression 
+$A03D = Warrior Aggression (Fractional byte)
+$A03E = SiniKills 
+
+The Diff table gets copied entirely at $A03F:
+
+$A03F = Difficulty Timer Pointer ($A019)
+$A041 = Difficulty Timer value (zero this to stop spawning new enemies)
+
+$A042 = Workers Pointer ($59A4)
+$A044 = Workers Pop Increase
+
+$A045 = Warriors Pointer ($59A7)
+$A047 = Warriors Pop Increase
+
+$A048 = Plan1 Pointer ($7BAA)
+$A04A = Plan1 Pop Increase
+
+$A04B = Plan3 Pointer ($7BAD)
+$A04D = Plan3 Pop Increase
+
+$A04E = Plan5 Pointer ($59AA)
+$A050 = Plan5 Pop Increase
+
+$A051 = Warrior Aggression Pointer ($59AD)
+$A053 = Warrior Aggression (must always be zero or the game WILL crash)
