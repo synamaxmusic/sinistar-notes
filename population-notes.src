@@ -286,7 +286,7 @@ Diff0:  A0 19 06 	;Difficulty Timer
         7B AA 10 	;Planetoid 1 Pop Increase
         7B AD 03 	;Planetoid 3 Pop Increase
         59 AA 7F 	;Planetoid 5 Pop Increase
-        59 AD 00	;Warrior Aggression (WAgg)
+        59 AD 00	;Warrior Aggression (WAgg) (must always be zero or the game WILL crash)
 
 
 ;;------------------------------------------------------------------------------
@@ -389,3 +389,11 @@ $A050 = Plan5 Pop Increase
 
 $A051 = Warrior Aggression Pointer ($59AD)
 $A053 = Warrior Aggression (must always be zero or the game WILL crash)
+
+;;------------------------------------------------------------------------------
+
+Difficulty Timer seems to always start at 5 and count up.
+
+Populations for all the different entities seem to be affected by each other.
+Setting 7F to one of the unused bytes for Sini-bombs or Crystals floods the
+sector with nothing.  Eventually there's not enough room for all the enemies.
