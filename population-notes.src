@@ -401,10 +401,47 @@ sector with nothing.  Eventually there's not enough room for all the enemies.
 ;;------------------------------------------------------------------------------
 
 			***MAME CHEAT SHEET***
+INPOP0 - FIRST ZONE POP TABLE VALUES
 
+(Workers)
 maincpu.rw@7abe = 00xx
+
+(Warriors)
 maincpu.rw@7ac1 = 00xx
+
+(Plan1)
 maincpu.rw@7ac4 = 00xx
+
+(Plan2)
 maincpu.rw@7ac7 = 00xx
+
+(Plan3)
 maincpu.rw@7aca = 00xx
+
+(Plan4)
+maincpu.rw@7acd = 00xx
+
+(Plan5)
+maincpu.rw@7ad0 = 00xx
+
+DIFF0 - FIRST ZONE DIFF TABLE VALUES
+
+(Difficulty Timer)
+maincpu.rb@7ae1 = xx
+
+(Worker Increase)
+maincpu.rb@7ae4 = xx
+
+(Warrior Increase)
+maincpu.rb@7ae7 = xx
+
+(Plan1 Increase)
+maincpu.rb@7aea = xx
+
+(Plan3 Increase)
+maincpu.rb@7aed = xx
+
+(Plan5 Increase)
+maincpu.rb@7af0 = xx
+
 
