@@ -1,0 +1,77 @@
+Here are a list of important cheats that I've come up with and use often to mod Sinistar
+
+
+***DISABLE "RUG" TEST***
+
+maincpu.rw@f063 = 1212
+maincpu.rw@f069 = 1212
+maincpu.rb@f06b = 12
+
+***SKIP GAME OVER AND INFINITE LIVES***
+
+maincpu.rb@2f84 = 20
+maincpu.rb@2fba = 20
+
+SAM/INITALL.SRC has conditional instructions in the "turn initialization" section of code,
+used for debugging.  These replace the BNE instructions with BRA, effectively skipping the
+game over routine.
+
+***DISABLE KENCHK WATCHDOG***
+
+maincpu.rw@52af = 7FA1
+maincpu.rw@52b1 = B339
+maincpu.rw@5230 = 0D00
+maincpu.rb@5232 = 12
+
+KENCHK is the watchdog routine that checks for zap.  There's times that we may want to disable it
+during modding and reverse engineering.
+
+RICHFIXE.SRC has instructions on disabling KENCHK and by following those, we get these commands for
+the MAME debugger.
+
+Address range $52AF-$52B2 is located in POWVECT, while $5230-$5232 is found in INIVECT.
+Both of them are in the INIRICH.SRC file.
+
+
+	SUBTTL	POWVECT - Routines occuring each machine power-up.
+*****
+*	PPPP    OOO   W   W  V   V  EEEEE   CCCC  TTTTT
+*	P   P  O   O  W   W  V   V  E      C        T
+*	PPPP   O   O  W W W  V   V  EEEE   C        T
+*	P      O   O  W W W   V V   E      C        T
+*	P       OOO    W W     V    EEEEE   CCCC    T
+*****
+	VECTOR	PowVect		* On each power-up
+	clra			* The attract mode is marked to
+	sta	AMDemo		*   start with the marquis page.
+*
+	CLRD			* Initialize the
+	std	ASCPtr		*   Animate Speech Call Pointer to nowhere.
+*	<<NEW INSTRUCTIONS>>
+	clr	KENCHK
+	rts
+ 	<<NEW INSTRUCTIONS>>
+  	;pshs	X,U		* Save work registers
+	;LDX	#0
+	<<overwrite these guys>>
+
+ 	SUBTTL	INIVECT - Routines occuring each player ship start.
+*****
+*	IIIII  N   N  IIIII  V   V  EEEEE   CCCC  TTTTT
+*	  I    NN  N    I    V   V  E      C        T
+*	  I    N N N    I    V   V  EEEE   C        T
+*	  I    N  NN    I     V V   E      C        T
+*	IIIII  N   N  IIIII    V    EEEEE   CCCC    T
+*****
+*
+	Routine	ZAPSini
+  	<<overwrite this>>
+	;tst	KenChk
+	<<replace with>>
+ 	tst	$0
+  	nop
+   	<<we need NOP to overwrite the $B3 left over>>
+	bpl	ADemo		* Continue IniVect
+	New_Sleep	Task1,100$
+	bra	ADemo		* Continue IniVect
+ 
