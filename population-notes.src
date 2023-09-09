@@ -444,4 +444,16 @@ maincpu.rb@7aed = xx
 (Plan5 Increase)
 maincpu.rb@7af0 = xx
 
+;;------------------------------------------------------------------------------
 
+Workers (7AE4) seem to be the most important byte when it comes to populations.
+
+Changing just the worker byte greatly influences the generation of additional
+warriors.
+
+Higher worker value = quicker warrior spawn time
+
+     7ABE  00 06 00 00 00 00 00 0A 00 00 02 00 00 02 00 00   ................
+     7ACE  02 00 00 02 00 00 00 00 00 00 00 00 01 00 00 01   ................
+     7ADE  00 A0 19 06 59 A4 04 59 A7 F8 7B AA 10 7B AD 03   . ..Y¤.Y§ø{ª.{-.
+     7AEE  59 AA 7F 59 AD 00 
