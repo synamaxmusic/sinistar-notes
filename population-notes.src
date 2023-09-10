@@ -677,7 +677,7 @@ player init, instead of 6!  Diff table in both versions are same.
 
 ------------------How do we make a more balanced Sinistar?--------------------
 
-I feel that there should be a gradual increase in difficulty.  The first zone should just be a face-off between the player
+I believe that there should be a gradual increase in difficulty.  The first zone should just be a face-off between the player
 and the Sinistar, with the workers trying to make it harder to mine crystals.  The first zone should act like a tutorial level,
 by introducing the concepts of mining crystals and firing Sini-Bombs before being attacked by the Sinistar.
 
@@ -689,3 +689,30 @@ Without warriors, the game can get one-sided quickly as the player easily racks 
 incomplete Sinistar before it's finished building.  Therefore, as a pre-caution, warriors should be eventually added into the
 first zone population after several DTimer ticks to prevent the player from just spamming the bomb button and blowing up
 the defenseless skull planet.
+
+--------------------------------------------------------------------------------
+
+First Zone Changes
+
+This single byte change reduces the spawn rate of the Warriors from $10 to $05.  I feel this is a much better slower speed
+than the original game, that allows experienced players to rank up points at the first zone before the warriors enter the sector.
+
+maincpu.rb@7ae4 = 05
+--------------------------------------------------------------------------------
+
+Worker Zone Changes
+
+maincpu.rb@7b15 = 01
+maincpu.rb@7b24 = 05
+
+
+
+
+
+
+
+
+
+
+
+
