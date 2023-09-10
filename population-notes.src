@@ -424,24 +424,24 @@ maincpu.rw@7acd = 00xx
 (Plan5)
 maincpu.rw@7ad0 = 00xx
 
-DIFF0 - FIRST ZONE DIFF TABLE VALUES
+DIFF0 - FIRST ZONE DIFF TABLE VALUES    **9/10/23 - Fixed labels**
 
-(Difficulty Timer)
+(Worker Increase / Difficulty Timer Enable)
 maincpu.rb@7ae1 = xx
 
-(Worker Increase)
+(Warrior Increase)
 maincpu.rb@7ae4 = xx
 
-(Warrior Increase)
+(Plan1 Increase)
 maincpu.rb@7ae7 = xx
 
-(Plan1 Increase)
+(Plan3 Increase)
 maincpu.rb@7aea = xx
 
-(Plan3 Increase)
+(Plan5 Increase)
 maincpu.rb@7aed = xx
 
-(Plan5 Increase)
+(Warrior Aggression) (not sure how this works yet)
 maincpu.rb@7af0 = xx
 
 ;;------------------------------------------------------------------------------
@@ -554,7 +554,7 @@ $F8 = $B0, $A0, $90, ...
 
 So, the source code is kinda misleading in how the data is defined.
 
-The Diff. table reads like this originally:
+The Diff. table source code reads like this originally:
 
 InDif0	fdb	DTime
 	fcb	6
@@ -588,7 +588,104 @@ InDif0	fdb	DTime
 	fdb	.WAgg		
 	fcb	0
 
-6 is not DTime, it's the Worker Increase!!  The zero at the end is not WAgg!!
+6 is not DTime, it's the Worker Increase!!  The zero at the end is not WAgg!! (This explains why changing this zero immediately crashes the game!)
 
+------------------9/10/23------------------------
 
+The Worker Increase byte is unusual in that it appears to be the only value that affects the other entities.
 
+If the byte is zero, then all the populations will not increase and stay at their defined InPop values.
+Meanwhile, the DTimer at $A019 continues counting up with every tick but skips increasing any of the populations numbers.
+
+Anything greater than a zero for the Worker Increase byte will affect the Worker population but also "turn on" the DTimer Increase bytes for the other entities.
+
+Therefore, it's best to label this byte as "Worker Increase/DTimer Enable"
+
+---------------Important Notes about Values------------------------
+
+Overflows are taken into consideration with the desired pop value.
+Any increase byte value over $20 will start to automatically add enemies upon player initialization.
+
+(Increase value * $0A = Initial Desired Pop Byte, Initial Fractional Byte)
+
+$19 * $0A = $00, $FA
+$20 * $0A = $01, $40
+
+These values are added to any InPop0 values upon player initialization.
+
+Entities can be removed from the population as well by using signed values such as $F8, but it's important that
+the initial population is not zero.  Because of the signed values, $7F is the highest increase value (it adds four entites automatically!).
+
+$7F * $0A = $04,$F6
+
+What happens if you put zero as the InPop value?  The overflow starts to affect the desired pop value.
+
+$80 * $0A = $500 ($FC00 signed)
+$80 (with $00 InPop0 value) = $FC, $00
+
+As you can see, the game tries to draw $FC (or 252 entities) in the sector.  Once the DTimer starts counting up, these large values usually crash the game.
+It appears that the game tries to limit drawing so many objects on-screen so instead of 252 as the current population, it starts off at around $54 and
+then starts decreasing enemies to prevent the game from crashing.
+
+$FF * $0A = $9F6 ($FFF6 signed)
+$FF (with $00 InPop0 value) = $FF, $F6
+
+-----------Differences between AMOA '82 and Final (V17) Pop Tables------------
+
+AMOA '82
+     7697  00 06 00 00 00 00 00 0A 00 00 02 00 00 02 00 00   ................
+     76A7  02 00 00 02 00 00 00 00 00 00 00 00 01 00 00 01   ................
+     76B7  00 A0 19 06 59 C1 10 59 C4 F8 77 83 10 77 86 03   . ..YÁ.YÄøw..w..
+     76C7  59 C7 7F 59 CA 00 06 06 01 01 01 01 03 00 00 01   YÇ.YÊ...........
+     76D7  01 A0 19 06 59 C1 10 59 C4 FF 77 83 FF 77 86 03   . ..YÁ.YÄÿw.ÿw..
+     76E7  59 C7 7F 59 CA 00 10 06 0A 02 02 02 02 00 00 01   YÇ.YÊ...........
+     76F7  01 A0 19 0A 59 C1 0A 59 C4 F8 77 83 10 77 86 03   . ..YÁ.YÄøw..w..
+     7707  59 C7 7F 59 CA 00 04 0A 0A 02 02 02 02 00 00 01   YÇ.YÊ...........
+     7717  01 A0 19 04 59 C1 10 59 C4 F8 77 83 10 77 86 03   . ..YÁ.YÄøw..w..
+     7727  59 C7 7F 59 CA 00 06 08 10 02 10 02 05 00 00 01   YÇ.YÊ...........
+     7737  01 A0 19 06 59 C1 0A 59 C4 10 77 83 10 77 86 03   . ..YÁ.YÄ.w..w..
+     7747  59 C7 7F 59 CA 00 00 02 00 00 00 00 00 04 00 00   YÇ.YÊ...........
+     7757  04 00 00 04 00 00 04 00 00 05 00 00 00 00 00 00   ................
+     7767  00 00 01 00 00 01 00 A0 19 06 59 C1 01 59 C4 01   ....... ..YÁ.YÄ.
+     7777  77 83 01 77 86 03 59 C7 7F 59 CA 00 A0 22 00 A0   w..w..YÇ.YÊ. ". 
+     7787  28 00 
+
+Final Sinistar Buiild
+     7ABE  00 06 00 00 00 00 00 0A 00 00 02 00 00 02 00 00   ................
+     7ACE  02 00 00 02 00 00 00 00 00 00 00 00 01 00 00 01   ................
+     7ADE  00 A0 19 06 59 A4 10 59 A7 F8 7B AA 10 7B AD 03   . ..Y¤.Y§ø{ª.{-.
+     7AEE  59 AA 7F 59 AD 00 06 08 01 01 01 01 03 00 00 01   Yª.Y-...........
+     7AFE  01 A0 19 06 59 A4 10 59 A7 FF 7B AA FF 7B AD 03   . ..Y¤.Y§ÿ{ªÿ{-.
+     7B0E  59 AA 7F 59 AD 00 10 03 0A 02 02 02 02 00 00 01   Yª.Y-...........
+     7B1E  01 A0 19 0A 59 A4 10 59 A7 F8 7B AA 10 7B AD 03   . ..Y¤.Y§ø{ª.{-.
+     7B2E  59 AA 7F 59 AD 00 04 0A 0A 02 02 02 02 00 00 01   Yª.Y-...........
+     7B3E  01 A0 19 04 59 A4 10 59 A7 F8 7B AA 10 7B AD 03   . ..Y¤.Y§ø{ª.{-.
+     7B4E  59 AA 7F 59 AD 00 06 08 10 02 10 02 05 00 00 01   Yª.Y-...........
+     7B5E  01 A0 19 06 59 A4 0A 59 A7 10 7B AA 10 7B AD 03   . ..Y¤.Y§.{ª.{-.
+     7B6E  59 AA 7F 59 AD 00 00 02 00 00 00 00 00 04 00 00   Yª.Y-...........
+     7B7E  04 00 00 04 00 00 04 00 00 05 00 00 00 00 00 00   ................
+     7B8E  00 00 01 00 00 01 00 A0 19 06 59 A4 01 59 A7 01   ....... ..Y¤.Y§.
+     7B9E  7B AA 01 7B AD 03 59 AA 7F 59 AD 00 A0 22 00 A0   {ª.{-.Yª.Y-. ". 
+     7BAE  28 00
+
+InPop2 (Worker Zone) appears to be tougher in AMOA '82 because there are 6 warriors upon
+player init, instead of 3!  The Worker Zone diff table was also changed.  AMOA uses the less
+intense $0A warrior increase value, but the final game uses the slightly larger $10 warrior increase value.
+
+InPop1 (Void Zone) is slightly tougher in the final game because there are 8 warriors upon
+player init, instead of 6!  Diff table in both versions are same.
+
+------------------How do we make a more balanced Sinistar?--------------------
+
+I feel that there should be a gradual increase in difficulty.  The first zone should just be a face-off between the player
+and the Sinistar, with the workers trying to make it harder to mine crystals.  The first zone should act like a tutorial level,
+by introducing the concepts of mining crystals and firing Sini-Bombs before being attacked by the Sinistar.
+
+Then, in Worker Zone, we start to slowly introduce a new enemy, the Warrior.  Warriors are really good at shooting, so even
+one Warrior can be surprisingly quick at killing the payer.  Therefore, we reduce the initial populations for the warrior
+and also pay attention to how fast enemies are spawning via the warrior increase value.
+
+Without warriors, the game can get one-sided quickly as the player easily racks up an insane amount of points by bombing the
+incomplete Sinistar before it's finished building.  Therefore, as a pre-caution, warriors should be eventually added into the
+first zone population after several DTimer ticks to prevent the player from just spamming the bomb button and blowing up
+the defenseless skull planet.
