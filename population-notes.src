@@ -535,7 +535,58 @@ are important:
 Value pattern appears to start with $0A, then add another $0A each time.
 $0A, $14, $1E, $28, $32, $3C.
 
+--------------------------------------------------
 
+DTimer math works like this:
+
+Initial value is $0A * Diff Increase value
+
+For every tick add (Diff Increase value * 2) to initial value.
+
+1 = $0A, $14, $1E, ...
+2 = $14, $18, $1C, ...
+3 = $1E, $24, $2A, ...
+4 = $28, $30, $38, ...
+
+--------------------------------------------------
+
+So, the source code is kinda misleading in how the data is defined.
+
+The Diff. table reads like this originally:
+
+InDif0	fdb	DTime
+	fcb	6
+	fdb	.PWor		* Workers
+	fcb	10
+	fdb	.PWar		* Warriors
+	fcb	-8
+	fdb	.PPl1		* Plan1's
+	fcb	10
+	fdb	.PPl3		* Plan3's
+	fcb	3
+	fdb	.PPl5		* Plan5's
+	fcb	$7F
+	fdb	.WAgg		* Warrior aggression
+	fcb	0
+
+But the data actually works like this:
+
+InDif0	fdb	DTime
+	fcb	6		;;(WORKER INCREASE)
+	fdb	.PWor		
+	fcb	10		;;(WARRIOR INCREASE)
+	fdb	.PWar		
+	fcb	-8		;;(PLAN1 INCREASE)
+	fdb	.PPl1		
+	fcb	10		;;(PLAN3 INCREASE)
+	fdb	.PPl3		
+	fcb	3		;;(PLAN5 INCREASE)
+	fdb	.PPl5
+	fcb	$7F		;;(WARRIOR AGGRESSION)
+	fdb	.WAgg		
+	fcb	0
+
+6 is not DTime, it's the Worker Increase!!  The zero at the end is not WAgg!!
 
 
 
