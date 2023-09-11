@@ -97,7 +97,7 @@ ANISC8    EQU    $553A
 maincpu.rw@5425 = 5579
 maincpu.rw@542B = 553A
 
-EEERRAAURGH!
+EEERRAAURGH! (Doesn't close mouth at end)
 SC9  	  EQU    $557E
 ANISC9    EQU    $5546
 
