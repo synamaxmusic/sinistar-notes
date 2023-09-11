@@ -16,6 +16,95 @@ SAM/INITALL.SRC has conditional instructions in the "turn initialization" sectio
 used for debugging.  These replace the BNE instructions with BRA, effectively skipping the
 game over routine.
 
+***PLAY ALL SINISTAR SPEECH ANIMATIONS***
+
+Trying to change Sinistar dialogue during status screen
+
+Https://github.com/historicalsource/sinistar/blob/dc00bce37e5c5c7947369cf5040c10e4799f4a06/MICA/STATUS.SRC#L174
+
+0x86F7 has $0B, which is the table offset that points to the Animation and Sound sequence
+for “Beware I live”.  
+
+This dummy animation table is located at $53AC
+
+https://github.com/historicalsource/sinistar/blob/dc00bce37e5c5c7947369cf5040c10e4799f4a06/WITT/ANISINI.SRC#L152
+
+But changing this to speech that has a lower priority doesn’t play so we have to follow
+the table jump address and change the values there.  $09 works because it has the same
+instructions that make any sound interruptible.
+
+https://github.com/historicalsource/sinistar/blob/dc00bce37e5c5c7947369cf5040c10e4799f4a06/WITT/ANISINI.SRC#L196
+
+Change speech sound
+maincpu.rw@5425 = 
+
+Change speech animation
+maincpu.rw@542B = 
+
+I AM SINISTAR
+SC1  	  EQU    $5556
+ANISC1    EQU    $5488
+
+maincpu.rw@5425 = 5556
+maincpu.rw@542B = 5488
+
+BEWARE, I LIVE
+SC2  	  EQU    $555B
+ANISC2    EQU    $54A2
+
+maincpu.rw@5425 = 555B
+maincpu.rw@542B = 54A2
+
+I HUNGER
+SC3  	  EQU    $5560
+ANISC3    EQU    $54C0
+
+maincpu.rw@5425 = 5560
+maincpu.rw@542B = 54C0
+
+BEWARE, COWARD
+SC4  	  EQU    $5565
+ANISC4    EQU    $54CE
+
+maincpu.rw@5425 = 5565
+maincpu.rw@542B = 54CE
+
+RUN, COWARD
+SC5  	  EQU    $556A
+ANISC5    EQU    $54EC
+
+maincpu.rw@5425 = 556A
+maincpu.rw@542B = 54EC
+
+RUN**3
+SC6  	  EQU    $556F
+ANISC6    EQU    $5504
+
+maincpu.rw@5425 = 556F
+maincpu.rw@542B = 5504
+
+I HUNGER, COWARD
+SC7  	  EQU    $5574
+ANISC7    EQU    $5520
+
+maincpu.rw@5425 = 5574
+maincpu.rw@542B = 5520
+
+EEERRAAURGH!
+SC8  	  EQU    $5579
+ANISC8    EQU    $553A
+
+maincpu.rw@5425 = 5579
+maincpu.rw@542B = 553A
+
+EEERRAAURGH!
+SC9  	  EQU    $557E
+ANISC9    EQU    $5546
+
+maincpu.rw@5425 = 557E
+maincpu.rw@542B = 5546
+
+
 ***DISABLE KENCHK WATCHDOG***
 
 maincpu.rw@52af = 7FA1
