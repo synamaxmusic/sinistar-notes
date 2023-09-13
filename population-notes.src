@@ -280,13 +280,20 @@ InPop0: 00 06 00	;Workers
 
 The Diff table has the two-byte address pointer, followed by the value.
  
-Diff0:  A0 19 06 	;Difficulty Timer
-        59 A4 10 	;Workers Pop Increase
-        59 A7 F8 	;Warriors Pop Increase
-        7B AA 10 	;Planetoid 1 Pop Increase
-        7B AD 03 	;Planetoid 3 Pop Increase
-        59 AA 7F 	;Planetoid 5 Pop Increase
-        59 AD 00	;Warrior Aggression (WAgg) (must always be zero or the game WILL crash)
+Diff0:  A0 19
+	06 		;Workers Pop Increase/Difficulty Timer
+        59 A4
+	10 		;Warriors Pop Increase
+        59 A7
+	F8 		;Planetoid 1 Pop Increase (or decrease in this case)
+        7B AA
+	10 		;Planetoid 3 Pop Increase
+        7B AD
+	03 		;Planetoid 5 Pop Increase
+        59 AA
+	7F 		;Warrior Aggression (WAgg)
+        59 AD
+	00		;padding (must always be zero or the game WILL crash)
 
 
 ;;------------------------------------------------------------------------------
@@ -370,31 +377,36 @@ $A03E = SiniKills
 The Diff table gets copied entirely at $A03F:
 
 $A03F = Difficulty Timer Pointer ($A019)
-$A041 = Difficulty Timer value (zero this to stop spawning new enemies)
-
+$A041 = Workers Pop Increase / Difficulty Timer value (zero this to stop spawning new enemies)
 $A042 = Workers Pointer ($59A4)
-$A044 = Workers Pop Increase
 
+$A044 = Warriors Pop Increase
 $A045 = Warriors Pointer ($59A7)
-$A047 = Warriors Pop Increase
 
+$A047 = Plan1 Pop Increase
 $A048 = Plan1 Pointer ($7BAA)
-$A04A = Plan1 Pop Increase
 
+$A04A = Plan3 Pop Increase
 $A04B = Plan3 Pointer ($7BAD)
-$A04D = Plan3 Pop Increase
 
+$A04D = Plan5 Pop Increase
 $A04E = Plan5 Pointer ($59AA)
-$A050 = Plan5 Pop Increase
 
+$A050 = Warrior Aggression
 $A051 = Warrior Aggression Pointer ($59AD)
-$A053 = Warrior Aggression (must always be zero or the game WILL crash)
+$A053 = padding (must always be zero or the game WILL crash)
 
 ;;------------------------------------------------------------------------------
 
-Difficulty Timer seems to always start at 5 and count up.
+***IMPORTANT DTIMER NOTE***
+
+The Operator Difficulty setting found in CMOS is taken into consideration and acts as a seed
+for all difficulty increase functions, as well as the starting value of DTimer.
+
+Default value is 5 and all the math that follows assumes this is what the game is currently set to.
 (9/13/23) This is because the game grabs the operator difficulty adjust value first.
-Default value is 5.
+
+All math is handled by the ChgA routine found in Sam's FUNCTION.SRC (which is called in Noah's N1ALL.SRC)
 
 3$	pshs	X
 	ldx	#GA1		* Operator difficulty adjust
@@ -404,6 +416,8 @@ Default value is 5.
 
 	jsr	ChgA		* bump up the difficulty a bit at the beginning
 	fdb	.DifTmr		* depending on operator setting 
+
+;;------------------------------------------------------------------------------
 
 Populations for all the different entities seem to be affected by each other.
 Setting 7F to one of the unused bytes for Sini-bombs or Crystals floods the
@@ -452,7 +466,7 @@ maincpu.rb@7aea = xx
 (Plan5 Increase)
 maincpu.rb@7aed = xx
 
-(Warrior Aggression) (not sure how this works yet)
+(Warrior Aggression Increase)
 maincpu.rb@7af0 = xx
 
 ;;------------------------------------------------------------------------------
@@ -548,18 +562,28 @@ $0A, $14, $1E, $28, $32, $3C.
 
 --------------------------------------------------
 
-DTimer math works like this:
+Diff Increase math works like this:
 
-Initial value is $0A * Diff Increase value
+***INITIAL VALUE***
 
-For every tick add (Diff Increase value * 2) to initial value.
+Initial value is: ((Operator Difficulty Setting * 2) * Diff Increase value)
 
-1 = $0A, $14, $1E, ...
-2 = $14, $18, $1C, ...
-3 = $1E, $24, $2A, ...
-4 = $28, $30, $38, ...
+The default value for the Operator setting is $05, so this is normally seen as:
 
-$F8 = $B0, $A0, $90, ...
+Initial value is: ($0A * Diff Increase value)
+
+***TICK VALUE***
+
+For every tick add (Diff Increase value * 2) to previous value.
+
+1 = $0A, $0C, $0E, $10,...
+2 = $14, $18, $1C, $20,...
+3 = $1E, $24, $2A, $30,...
+4 = $28, $30, $38, $40,...
+5 = $32, $3C, $46, $50,...
+6 = $3C, $48, $54, $60,...
+
+$F8 = $B0, $A0, $90, $80,...
 
 --------------------------------------------------
 
