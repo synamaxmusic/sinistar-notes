@@ -393,6 +393,17 @@ $A053 = Warrior Aggression (must always be zero or the game WILL crash)
 ;;------------------------------------------------------------------------------
 
 Difficulty Timer seems to always start at 5 and count up.
+(9/13/23) This is because the game grabs the operator difficulty adjust value first.
+Default value is 5.
+
+3$	pshs	X
+	ldx	#GA1		* Operator difficulty adjust
+	jsr	RCmosA		* Read from CMOS
+	puls	X
+
+
+	jsr	ChgA		* bump up the difficulty a bit at the beginning
+	fdb	.DifTmr		* depending on operator setting 
 
 Populations for all the different entities seem to be affected by each other.
 Setting 7F to one of the unused bytes for Sini-bombs or Crystals floods the
@@ -588,7 +599,7 @@ InDif0	fdb	DTime
 	fdb	.WAgg		
 	fcb	0
 
-6 is not DTime, it's the Worker Increase!!  The zero at the end is not WAgg!! (This explains why changing this zero immediately crashes the game!)
+6 is not only DTime, it's the Worker Increase!!  The zero at the end is not WAgg!! (This explains why changing this zero immediately crashes the game!)
 
 ------------------9/10/23------------------------
 
@@ -704,6 +715,23 @@ Worker Zone Changes
 
 maincpu.rb@7b15 = 01
 maincpu.rb@7b24 = 05
+
+-------------------------------09/13/23-------------------------------------
+
+It appears that upon warping to a new zone, new enemies are ADDED to the pre-existing population.
+
+Also, the timer is reset after every SiniKill and then the DTimer value is multiplied by the
+operator difficulty setting.  Here's an excerpt of the RstPop routine source code that's responsible for this:
+
+
+	mul			* Calculate difficulty add based on oper. diff.
+	tfr	B,A		* Put result in A (will be 30. for avg. diff.) 		;;(6 x 5 = 30)
+	jsr	ChgA		* Add that difficulty
+	fdb	.DifTmr		* To difficulty timing structure
+	ldb	Temp		* Get counter of difficulty waves advanced
+	addb	#4		* Set it ahead another set of waves
+	jmp	4$		* And see if that is enough for now
+
 
 
 
