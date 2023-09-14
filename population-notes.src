@@ -766,9 +766,9 @@ operator difficulty setting.  Here's an excerpt of the RstPop routine source cod
 	addb	#4		* Set it ahead another set of waves
 	jmp	4$		* And see if that is enough for now
 
-After the first SiniKill, the Worker Zone starts with $23 as the starting DTimer value.
+After the first SiniKill, every following Zone starts with $23 as the starting DTimer value.
 
-To get this value, it multiplies 6 by 5:
+To get this value, the game multiplies 6 by 5:
 
 6 * 5 = 1E
 
