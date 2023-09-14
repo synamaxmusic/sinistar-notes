@@ -278,21 +278,21 @@ InPop0: 00 06 00	;Workers
         00 01 00	;SiniStar
         00 01 00	;Player
 
-The Diff table has the two-byte address pointer, followed by the value.
+Each entry in the Diff table has a two-byte address pointer, followed by the increase value.
  
-Diff0:  A0 19
-	06 		;Workers Pop Increase/Difficulty Timer
-        59 A4
+Diff0:  A0 19		;DTime
+	06 		;Workers Pop Increase/Difficulty Timer Enable
+        59 A4		;.PWor
 	10 		;Warriors Pop Increase
-        59 A7
+        59 A7		;.PWar
 	F8 		;Planetoid 1 Pop Increase (or decrease in this case)
-        7B AA
+        7B AA		;.PPl1	
 	10 		;Planetoid 3 Pop Increase
-        7B AD
+        7B AD		;.PPl3
 	03 		;Planetoid 5 Pop Increase
-        59 AA
+        59 AA		;.PPl5	
 	7F 		;Warrior Aggression (WAgg)
-        59 AD
+        59 AD		;.WAgg
 	00		;padding (must always be zero or the game WILL crash)
 
 
@@ -398,13 +398,12 @@ $A053 = padding (must always be zero or the game WILL crash)
 
 ;;------------------------------------------------------------------------------
 
-***IMPORTANT DTIMER NOTE***
+***IMPORTANT DTIMER NOTE (9/13/23)***
 
 The Operator Difficulty setting found in CMOS is taken into consideration and acts as a seed
 for all difficulty increase functions, as well as the starting value of DTimer.
 
 Default value is 5 and all the math that follows assumes this is what the game is currently set to.
-(9/13/23) This is because the game grabs the operator difficulty adjust value first.
 
 All math is handled by the ChgA routine found in Sam's FUNCTION.SRC (which is called in Noah's N1ALL.SRC)
 
@@ -469,23 +468,10 @@ maincpu.rb@7aed = xx
 (Warrior Aggression Increase)
 maincpu.rb@7af0 = xx
 
-;;------------------------------------------------------------------------------
-
-Workers (7AE4) seem to be the most important byte when it comes to populations.
-
-Changing just the worker byte greatly influences the generation of additional
-warriors.
-
-Higher worker value = quicker warrior spawn time
-
-     7ABE  00 06 00 00 00 00 00 0A 00 00 02 00 00 02 00 00   ................
-     7ACE  02 00 00 02 00 00 00 00 00 00 00 00 01 00 00 01   ................
-     7ADE  00 A0 19 06 59 A4 04 59 A7 F8 7B AA 10 7B AD 03   . ..Y¤.Y§ø{ª.{-.
-     7AEE  59 AA 7F 59 AD 00 
 
 ;;----------------------9/9/23----------------------------------------------------
 
-Okay, so I did some tests and I found some patterns in the memory that I feel
+Okay, so I did some tests and I found some patterns in memory that I feel
 are important:
 
      A019  09 00 06 06 00 00 00 00 0A 0A 00 02 02 00 02 02    ...............
