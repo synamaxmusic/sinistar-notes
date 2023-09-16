@@ -86,31 +86,33 @@ TAIL	LDB	$9853
 	LDX	#TAILTBL
 	ABX
 	LDA	1,X
-	ADDA	OLEFT,Y
+	ADDA	$06,Y
 	STA	$CA04+1
 	STA	TAILS
 	LDA	X
 	CLRB
 	ASRA
 	RORB
-	ADDD	OLPOS,Y
+	ADDD	$0005,Y
 	STA	$CA04
 	STA	TAILL
 	LDA	#$08+$04+$02	
 	BCS	1$
-	ORA	#DTFL
+	ORA	#$20
 1$	STA	$CA00	
 	STA	TAILDMA
 	JMP	$45EA
 
 	LOCAL
 * initialize random tail data
-	VECTOR	SYSVECT
+;;	VECTOR	SYSVECT
+	JSR	$31D3
+;;
 	LDX	#TAILDAT
 	CLRA
 	LDB	#0C0
-	JSR	INITRAM
-	JSR	INITRAM
+	JSR	$32F0
+	JSR	$32F0
 	LDX	#$50CB
 	CLR	$9800
 1$	LDA	X
@@ -128,14 +130,14 @@ TAIL	LDB	$9853
 	JSR	$4802
 ;;
 	ANDA	#3F
-	JSR	SINCOS
+	JSR	$47DA
 	CLRB
-	JSR	ASRD6
+	JSR	$48E6
 	PSHS	D
 ;;
 ;;	RANDOM	OSEED2,BYTE
 ;;
-	LDA	#$00
+	LDA	#$02
 	JSR	$4802
 ;;
 	TFR	A,B
@@ -172,19 +174,8 @@ TAIL	LDB	$9853
 	BLO	1$
 	RTS
 
-	VECTOR	INIVECT
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-VECTOR	MACRO	N1
-	BLIST
-	LOCAL
-.$$	SET	*
-	ORG	N1
-	JSR	.$$
-	ORG	.$$
-	HOOK	N1
-	MLIST
-	ENDM
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;	VECTOR	INIVECT
+
 ;;	CLRD			;;(CLRD is just CLRA followed by CLRB)
 	CLRA
 	CLRB
@@ -233,7 +224,18 @@ TAILTBL	FDB	$FC02,$FC02,$FD01,$FDFF,$FFFE,$FFFD,$00FD,$FFFD
 	PULLORG	ROMSAVE
 
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+VECTOR	MACRO	N1
+	BLIST
+	LOCAL
+.$$	SET	*
+	ORG	N1
+	JSR	.$$
+	ORG	.$$
+	HOOK	N1
+	MLIST
+	ENDM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 * fast random number generator
 FRANDOM	MACRO	SOFF,RNG,OFS
 	BLIST
@@ -253,3 +255,4 @@ FRANDOM	MACRO	SOFF,RNG,OFS
 	ENDIF
 	MLIST
 	ENDM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
