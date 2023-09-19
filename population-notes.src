@@ -774,7 +774,12 @@ Then that value $1E gets added by the operator difficulty setting, which gives u
 	fdb	.DifTmr		* depending on operator setting 
 
 
-
+--------------9/19/23-------------------
+maincpu.rb@7ae4 = 04
+maincpu.rb@7b24 = 04
+maincpu.rb@7b15 = 00
+maincpu.rb@7b35 = 03
+maincpu.rb@7b55 = 05
 
 
 
