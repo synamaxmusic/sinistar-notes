@@ -248,4 +248,11 @@ Again, we replace TST with CLR.  It should look like this:
 
 Do this again for the two ZAPRTS macros in the Warrior section of the game logic ($669C and $670F)
 
+-------------------------------------------------------------------------------------------------
+
+Lastly, let's say we wanted to be bad and fake the checksums for the ROM test so that we can have
+diagnostics run but pass every time.
+
+ROMTAB is the table that holds all the checksums that the test uses to verify data integrity.
+The table is located at $F34F and interestingly, it features different values than in the source code.
 
