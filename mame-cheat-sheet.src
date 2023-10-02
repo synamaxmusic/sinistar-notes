@@ -208,9 +208,44 @@ Second edit is at $52AF.  This is where KENCHK gets written to if there's a copy
 *
 	rts
 
-Clear KenChk and replace all the instructions here until you reach RTS.  This means
-adding 44 NOPs.  Simply just replacing the first couple of bytes with Clr KenChk and then RTS wasn't working.
+Replace PSHS X,U with CLR KenChk (7F A1 B3) and then replace all the instructions after with NOPs ($12)
+until you reach RTS ($39).  This means adding 44 NOPs.  More experimenting is needed to see if there's
+a better way to do this.  If there's no jumps to this section in other parts of the game logic,
+then maybe we can use this space for new code.
 
 -----------------------------------------------
 Third edit is at $531F (ZAPRTS AT "EMPTY" ROUTINE)
-	
+
+There are three instances of the ZAPRTS Macro.  Here's Rich Witt's comments about this routine.
+
+*****
+*
+* ZAPRTS
+*	This macro is used in place of a normal RTS instruction.
+*	The result of which is that if the copyright for Williams
+*	is still intact, the RTS will occur normally.  Otherwise,
+*	the RTS does not occur.  Used strategically, the effect is
+*	that the system will SLOWLY begin to degrade.  Please do NOT
+*	use this macro where the system will come to a halt.  That is
+*	too easily traced and fixed.
+*
+*****
+ZAPRTS	MACRO
+	BLIST
+	tst	KenChk
+	lbge	rts
+	MLIST
+	ENDM
+
+LBGE is a four byte instruction so we'll need to replace it with an RTS and three NOPs.
+Again, we replace TST with CLR.  It should look like this:
+
+	clr	KenChk		;;7F A1 B3
+	RTS			;;39
+	NOP			;;12
+	NOP
+	NOP
+
+Do this again for the two ZAPRTS macros in the Warrior section of the game logic ($669C and $670F)
+
+
