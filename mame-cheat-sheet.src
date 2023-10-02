@@ -105,22 +105,70 @@ maincpu.rw@5425 = 557E
 maincpu.rw@542B = 5546
 
 
-***DISABLE KENCHK WATCHDOG***
+***DISABLE KENCHK ($A1B3)***
 
-maincpu.rw@52af = 7FA1
-maincpu.rw@52b1 = B339
-maincpu.rw@5230 = 0D00
-maincpu.rb@5232 = 12
+Okay, this took a while to figure out but here is how to disable the routine that checks
+if the copyright text scattered throughout the code is messed up.
 
-KENCHK is the watchdog routine that checks for zap.  There's times that we may want to disable it
-during modding and reverse engineering.
+It's easier to make these edits in the ROM files themselves rather than doing this in
+Mame's debugger.
 
-RICHFIXE.SRC has instructions on disabling KENCHK and by following those, we get these commands for
-the MAME debugger.
+RICHFIXE.SRC has instructions on disabling KENCHK ($A1B3):
+--------------------------------------------------------------------------------
+***
+*	This overrides the j*pzap during development.
+***
+	IFNDEF	Proms
+	PUSHORG	ROMSAVE
+	VECTOR	POWVECT
+	SYMVER	KENCHK,KENCHK
+	clr	KENCHK
+	rts
+	VECTOR	IniVect
+	clr	KenChk
+	rts
+	PULLORG	ROMSAVE
+	SYMVER	ZAPSIN,ZAPSini
+	PUSHORG	ZAPSini		* In the PowVect routine, ignore the
+	tst	$0		*   copyright violation test routine.
+	PULLORG
+	ENDIF	Proms
+---------------------------------------------------------------------------------
 
-Address range $52AF-$52B2 is located in POWVECT, while $5230-$5232 is found in INIVECT.
-Both of them are in the INIRICH.SRC file.
+First, let's disable ZAPSINI at $5230.  Here's what the original code looks like:
 
+	Routine	ZAPSini
+	tst	KenChk
+	bpl	ADemo		* Continue IniVect
+	New_Sleep	Task1,100$
+	bra	ADemo		* Continue IniVect
+
+KenChk works by flagging the copyright protection if it's NON-ZERO.  I've seen the value go to $F2 during gameplay.
+We should clear it everytime instead of testing it.  Change the $7D opcode to an $7F.
+
+It's important that we skip this "New_Sleep" task.  The branch if plus instruction (BPL)
+will still go through even if KENCHK is zero because it's still a positive value, so we must NOP it out.
+
+
+
+	Routine	ZAPSini
+	clr	KenChk		;;7F A1 B3
+	nop			;;12 (do NOP 9 times)
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	bra	ADemo		* Continue IniVect
+
+Stop adding NOPs when you reach the BRA opcode ($20).
+
+---------------------------------------------------------------------------------
+
+Second edit is at $52AF.  This is where KENCHK gets written to if there's a copyright violation.
 
 	SUBTTL	POWVECT - Routines occuring each machine power-up.
 *****
@@ -136,31 +184,33 @@ Both of them are in the INIRICH.SRC file.
 *
 	CLRD			* Initialize the
 	std	ASCPtr		*   Animate Speech Call Pointer to nowhere.
-*	<<NEW INSTRUCTIONS>>
-	clr	KENCHK
-	rts
- 	<<NEW INSTRUCTIONS>>
-  	;pshs	X,U		* Save work registers
-	;LDX	#0
-	<<overwrite these guys>>
-
- 	SUBTTL	INIVECT - Routines occuring each player ship start.
-*****
-*	IIIII  N   N  IIIII  V   V  EEEEE   CCCC  TTTTT
-*	  I    NN  N    I    V   V  E      C        T
-*	  I    N N N    I    V   V  EEEE   C        T
-*	  I    N  NN    I     V V   E      C        T
-*	IIIII  N   N  IIIII    V    EEEEE   CCCC    T
-*****
 *
-	Routine	ZAPSini
-  	<<overwrite this>>
-	;tst	KenChk
-	<<replace with>>
- 	tst	$0
-  	nop
-   	<<we need NOP to overwrite the $B3 left over>>
-	bpl	ADemo		* Continue IniVect
-	New_Sleep	Task1,100$
-	bra	ADemo		* Continue IniVect
- 
+	pshs	X,U		* Save work registers
+	LDX	#0
+	LDD	#$EF
+	STA	KENCHK
+1$	LEAX	2,X
+	ADDA	#$10
+	BMI	3$
+	LDU	D,X
+	CMPU	100$,X
+	ORCC	#$0A
+	ANDCC	#$DE
+	BNE	2$
+	ORCC	#$0B
+2$	TST	KENCHK
+	BCS	1$
+	BGT	1$
+	INCB
+	STB	KENCHK
+	BCC	1$
+3$	PULS	X,U		* Restore work registers
+*
+	rts
+
+Clear KenChk and replace all the instructions here until you reach RTS.  This means
+adding 44 NOPs.  Simply just replacing the first couple of bytes with Clr KenChk and then RTS wasn't working.
+
+-----------------------------------------------
+Third edit is at $531F (ZAPRTS AT "EMPTY" ROUTINE)
+	
