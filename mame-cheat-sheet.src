@@ -310,3 +310,40 @@ ROMEND	FCB	0
 Replace with:
 00 00 10 00 20 00 30 00 40 00 50 00 60 00 70 00
 80 00 90 00 A0 00 B0 00 C0 00 D0 00 E0 00 F0 00 00 00
+
+=========================================================================
+***MULTI-CRYSTALS***
+
+KenChk must be disabled to run this.
+
+Inside the AddBomb routine, we jump over to the copyright string at $3435,
+and then excute the following code:
+
+	LDA   	$2E		;96 2E    (Grab a random seed from $982E)
+	ANDA	#$03		;84 03    (AND the A register with #$03 so we don't get too many crystals)
+	BNE	$343C		;26 01    (If it's not equal to zero, we skip INCA)
+	INCA			;4C       (But if we do get a zero, Increase A by 1)
+	ADCA	$A013		;B9 A0 13 (Add A with BOMBS)
+	CMPA	#$14		;81 14    (Compare A with maximum amount of BOMBS)
+	BLE	$3448		;2F 02    (If the number is less then #$14, then go to RTS)
+	LDA	#$14		;86 14	  (Otherwise, we replace the larger value with #$14)
+	RTS			;39	  (Go back to where we left off with the AddBomb routine)
+
+Here's the debugger commands:
+
+maincpu.rb@5688 = BD
+maincpu.rw@5689 = 3435
+
+maincpu.rq@3435 = 962E840326014CB9
+maincpu.rq@343D = A01381142F028614
+maincpu.rb@3448 = 39
+
+The first set of commands overwrites the INCA and CMPA #14 instructions originally in the AddBomb routine.
+Instead we JSR to $3435.
+
+The second set overwrites the copyright message at $3435 with the multi-crystal code.
+
+There is a DMA bug that causes issues with graphics and extra care had to be taken into consideration in the original source
+for this issue.  The UpBombs routines that updates the HUD showing all the bombs only draws one bomb at a time.
+If multiple bombs are picked up, it only draws the last bomb collected.
+
