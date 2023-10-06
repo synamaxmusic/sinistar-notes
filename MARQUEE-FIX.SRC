@@ -1,5 +1,26 @@
-MARQUEE = 7D93
-MARKEY = 7E04
+Here is how I was able to get the AMOA '82 logo back in the final build of Sinistar. 
+
+This mod has several prerequisites:
+
+* KenChk must be be disabled (see mame-cheat-sheet.src for instructions)
+* We must overwrite the RAM and ROM tests in Rom 11 to fit the 721 (aka $2D1) bytes
+of data needed for this routine. This means that you can not use the RAM or ROM test
+in a real cabinet if you were to burn a ROM set for your PCB.
+* Overwriting the copyright string at $3435 (Rom 4), which is why KenChk must be
+disabled.
+
+In the original AMOA ROM set (sinistarp in MAME), the MARQUEE routine is located at
+$7D93.  The MARKEY table, the larger section of code, is located at $7E04.
+
+We're very lucky to have this source code because this routine and table were not
+included in the final game (most likely due to space constraints).  This is also the
+only commented code from Mike Metz that has survived.  Kenneth F. Lantz was Noah
+Falstein's boss, I believe his title was director of software development.  He might
+be who KenChk is named after.  
+
+Ken also wrote code that survived in Joust so we know these weird funny comments
+have gotta be Mike.  I mean this in the nicest way possible, but this code makes
+it seem like he was high when he wrote it.
 
 ******************************************************************************
 *
@@ -20,12 +41,12 @@ MARQUEE	PSHS	Y		Now resave Y through the next trial
 	STA	PCRAM+$E
 
 	LDY	#MARKEY		;Marquee table
-	LDX	#$6825		;;(this is different in the "sinistarp" ROM set)
-;	LDX	#$7225		;COLUMN OFFSETS $26 THRU $D0
+;;	LDX	#$6825		;;(found in "sinistarp" ROM set)
+	LDX	#$7225		;COLUMN OFFSETS $26 THRU $D0
 
 OWELL	TFR	X,D
-	LDA	#$68		;;(this is different in the "sinistarp" ROM set)
-;	LDA	#$72		
+;;	LDA	#$68		;;(found in "sinistarp" ROM set)
+	LDA	#$72		
 	INCB
 	CMPB	#$D0
 	LBHI	FINSIT
@@ -57,8 +78,10 @@ OWELL	TFR	X,D
 
 
 FINSIT	TEXT	$52,$CD
+;;	TEXT	$48,$CD		;;(AMOA old position)
 	PHRASE	RED,35,TM
 	TEXT	$4A,LEFEDG
+;;	TEXT	$40,LEFEDG	;;(AMOA old position)
 	PHRASE	RED,35,COPYRIGHT,1982,WILLIAMS,ELECTRONICS,INC
 	
 	PULS	Y,PC
@@ -246,3 +269,49 @@ MARKEY	FCB $2A,$C3
 	ENDIF		; Whole file is not included if KENSMARQ is undefined
 
 	PULLORG	ROMSAV
+
+--------------------------------------------------------------
+There are several differences between this code and what appears in the AMOA build:
+
+	LDY	#MARKEY		;Marquee table
+;;	LDX	#$6825		;;(found in "sinistarp" ROM set)
+	LDX	#$7225		;COLUMN OFFSETS $26 THRU $D0
+
+OWELL	TFR	X,D
+;;	LDA	#$68		;;(found in "sinistarp" ROM set)
+	LDA	#$72		
+
+Both instances of $72 in the source code were originally $68 in the AMOA ROM.
+These bytes represent the vertical position of the Sinistar AMOA marquee logo.  In the
+original AMOA ROM, the $68 meant that the graphic was placed in the center of the
+screen.  However, this new $72 value places the graphics slightly higher up,
+making room for the operator message, which is normally displayed as two rows of
+"0"s on the title screen.  Because of this, I believe this source code is newer than
+the AMOA ROM and shows that the devs were still working on it after the AMOA '82 show.
+
+FINSIT	TEXT	$52,$CD
+;;	TEXT	$48,$CD		;;(AMOA old position)
+	PHRASE	RED,35,TM
+	TEXT	$4A,LEFEDG
+;;	TEXT	$40,LEFEDG	;;(AMOA old position)
+	PHRASE	RED,35,COPYRIGHT,1982,WILLIAMS,ELECTRONICS,INC
+
+The text position also changed in the source code and the copyright string lines up
+perfectly with the string in the final build.  Note that Sinistar doesn't use ASCII like
+other games, it has this weird but optimized way of displaying text so trying to find
+in-game text in Sinistar is difficult.  The PHRASE routine or the values that represet
+the letters/strings changed between builds and display incorrectly so I copied the
+strings from the final version and changed the positions.  Only the vertical positions
+were modified, the horizontal positions are the same.
+
+------------------------------------------------------------------
+
+We need a lot of space in order to get this code in the final build.  I decided to
+wipe out the ROM and RAM tests because we can overwrite the jumps that lead to them with
+NOPs.  This is nice because it allows us to skip the Rug test and boot directly into
+the game.  Unfortunately, this removes the ability to let us know if there's something
+wrong with the ROM or RAM.  This mod also disables the operator's menu so there's no
+way to get into the settings and view other diagnoistic stuff, even though the code is
+still there.  I might be able to fix this at a later point but since this is not the
+main focus of this mod, this issue isn't super important.
+
