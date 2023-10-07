@@ -1,5 +1,28 @@
 Here is how I was able to get the AMOA '82 logo back in the final build of Sinistar. 
 
+For those who don't know, the AMOA '82 build of Sinistar is the earliest build of
+the game that's been preserved and is also the earliest version of the game that
+was revealed to the public.  It has some incomplete features and bugs and was
+first shown on November 18th, 1982 at the Amusement and Music Operators Association
+show at the Hyatt Regency Hotel in Chicago, Illinois.
+
+-------------------
+
+http://www.panix.com/~douglas/sinistar.html
+
+Douglas's Sinistar page lists some differences between this version and the final
+game.  The one that's most relevant to us is this:
+
+   * In attract mode, the word SINISTAR is displayed in big red letters in the shape
+     of the word on the marquee. (See the top of this page.) (Much cooler than the
+     standard attract mode display, in my opinion.)
+
+I totally agree, and with this mod we can finally make this a reality.
+
+SynaMax - 10/6/2023
+
+			*** Part 1: Getting Started ***
+
 This mod has several prerequisites:
 
 * KenChk must be be disabled (see mame-cheat-sheet.src for instructions)
@@ -12,6 +35,8 @@ disabled.
 In the original AMOA ROM set (sinistarp in MAME), the MARQUEE routine is located at
 $7D93.  The MARKEY table, the larger section of code, is located at $7E04.
 
+			*** Part 2: Source Code ***
+
 We're very lucky to have this source code because this routine and table were not
 included in the final game (most likely due to space constraints).  This is also the
 only commented code from Mike Metz that has survived.  Kenneth F. Lantz was Noah
@@ -20,7 +45,9 @@ be who KenChk is named after.
 
 Ken also wrote code that survived in Joust so we know these weird funny comments
 have gotta be Mike.  I mean this in the nicest way possible, but this code makes
-it seem like he was high when he wrote it.
+it seem like he was high when he wrote it.  Or maybe he just had a quirky sense of
+humor back then, who knows?  Regardless, I'm just really glad all of this source
+code was preserved, even after being removed from the final version (V17).
 
 ******************************************************************************
 *
@@ -271,6 +298,8 @@ MARKEY	FCB $2A,$C3
 	PULLORG	ROMSAV
 
 --------------------------------------------------------------
+			*** Part 3: Code Differences ***
+
 There are several differences between this code and what appears in the AMOA build:
 
 	LDY	#MARKEY		;Marquee table
@@ -301,17 +330,116 @@ perfectly with the string in the final build.  Note that Sinistar doesn't use AS
 other games, it has this weird but optimized way of displaying text so trying to find
 in-game text in Sinistar is difficult.  The PHRASE routine or the values that represet
 the letters/strings changed between builds and display incorrectly so I copied the
-strings from the final version and changed the positions.  Only the vertical positions
-were modified, the horizontal positions are the same.
+strings from the final version and changed the position bytes manually.  Only the
+vertical positions were modified, the horizontal positions ($CD and LEFEDG) are the same.
+
+"TM" PHRASE (FINAL BUILD):
+8E 52 CD BD 2E 44 C6 DD 86 94 BD E2 0C
+
+"TM" PHRASE (AMOA BUILD):
+8E 48 CD BD 2E 44 C6 DD 86 81 BD E2 0C
+
+COPYRIGHT PHRASE (FINAL BUILD):
+8E 4A 2C BD 2E 44 C6 DD 86 95 BD E2 0C 86 96 BD E2 0C 86 97 BD E2 0C 86 98 BD E2 0C 86 99 BD E2 0C
+
+COPYRIGHT PHRASE (AMOA BUILD):
+8E 40 2C BD 2E 44 C6 DD 86 82 BD E2 0C 86 83 BD E2 0C 86 84 BD E2 0C 86 85 BD E2 0C 86 86 BD E2 0C
 
 ------------------------------------------------------------------
 
-We need a lot of space in order to get this code in the final build.  I decided to
-wipe out the ROM and RAM tests because we can overwrite the jumps that lead to them with
-NOPs.  This is nice because it allows us to skip the Rug test and boot directly into
-the game.  Unfortunately, this removes the ability to let us know if there's something
-wrong with the ROM or RAM.  This mod also disables the operator's menu so there's no
-way to get into the settings and view other diagnoistic stuff, even though the code is
-still there.  I might be able to fix this at a later point but since this is not the
-main focus of this mod, this issue isn't super important.
+			*** Part 4: Overwriting Rug Test Code ***
+
+We need a lot of space in order to get this code in the final build.  The entire MARQUEE
+chunk of data adds up to a total of $2D1 bytes so I needed a large portion of ROM space.
+I decided to wipe out the ROM and RAM tests because there is already a hack where we can
+skip the "Rug" test entirely by overwriting the jumps located at $F063 and $F069 with NOPs.
+This is nice because it allows us to boot directly into the game.  Unfortunately, this
+removes the ability to let us know if there's something wrong with the ROM or RAM.  
+
+This mod also disables the operator's menu so there's no way to get into the settings and
+view other diagnoistic stuff, even though the code is still there.  I might be able to fix
+this at a later point but since this is not the main focus of this mod, this issue isn't
+super important.
+
+In an incredible stroke of luck, the entire chuck of data for the RAM and ROM tests 
+equals to a total of $2D2 bytes, just one byte over what I needed!  There is one problem
+though and that's where KenChk comes in.  There is a JMP instruction at $F09C that points
+to a section of code inside the $2D2-sized chuck that we need to overwrite.  This sub-
+routine is responsible for getting us out of the Rug test and launching the game, so we
+need to place it somewhere else in the game's data and execute it or otherwise the game
+will never boot.  This is what that code looks like:
+
+DELA1	LDX	#$5800
+DELA2	LEAX	-1,X
+	LDB	#WDATA
+	STB	WDOG
+	CMPX	#0
+	BNE	DELA2
+	DECA
+	BNE	DELA1
+	JMP	,Y	;RETURN
+
+Instead of pointing to $F1FD, we'll point it to $3435, which is where we'll over-
+write a copyright string.  Again, we'll need KenChk disabled or otherwise the
+Sinistar character will never spawn and other weird anti-piracy quirks will happen.
+
+At $3435, overwrite the Copyright string with the following bytes:
+8E 58 00 30 1F C6 39 F7 CB FF 8C 00 00 26 F4 4A 26 EE 6E A4
+
+The game will jump to this address and run this necessary code.  If everything
+was done correctly, the CPU will skip the test and go directly to the game, all
+while giving us $2D2 bytes of room to play around with.
+
+-------------------------------------------------------------------------------------
+
+			*** Part 5: MARQUEE Routine address fix ***
+
+Fortunately, there's only one change that we need to do in the MARQUEE routine,
+like the previously mentioned Copyright and "TM" text positioning.  We only need
+to change the address for MARKEY ($7E04) that loads into Y.
+
+Paste the MARQUEE binary data at $F09F, the start of our new area to overwrite in.
+At $F0A7, change the $7E04 to the new MARKEY address, $F110.
+
+-------------------------------------------------------------------------------------
+
+			*** Part 6: Fixing the game logic ***
+
+Finally, we need to insert a call to the new MARQUEE routine inside the game logic
+code.  In a super awesome move, RJ Mical put in comments that explain how to call the
+original marquee routine.  This can be found in MICA/ZZATTRAC.SRC:
+
+******************************************************************************
+*
+* Marquee Page
+*   By Ken Lantz and Mike Metz
+*
+10$	PSHS	Y		Now resave Y through the next trial
+
+	LDA	#%00110011	Set PANMASK to allow
+	STA	PANMASK		  PLAYER 1/2 Start, Fire and Sinibomb buttons
+
+	JSR	CLRSCR		Clear that ol' whole-screen again
+	JSR	DCREDITS
+
+
+	IFDEF	KENSMARQ  * Defining this includes Ken's Marquee Display
+	JSR	MARQUEE
+	ELSE
+* To patch in Ken's Marquee, overwrite this Text/Phrase combination
+*   with a JSR MARQUEE and several NOPs.  
+	TEXT	$58,$65
+	PHRASE	RED,68,SINISTAR
+	TEXT	$54,$99
+	PHRASE	RED,35,TM
+	ENDIF
+---------------------------------------------------------------------
+Well, that makes my job a lot easier; thank you so much, RJ!
+
+At address $811E, overwrite the whimpy old Sinistar typefont logo
+with this:
+
+BD F0 9F 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12
+
+
 
