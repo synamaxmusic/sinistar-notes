@@ -7123,42 +7123,47 @@
 3430: 26 ED          BNE    $341F
 3432: 6E B8 06       JMP    [$06,Y]
 ;CR3
-3435: 43             COMA
-3436: 4F             CLRA
-3437: 50             NEGB
-3438: 59             ROLB
-3439: 52             XNCB
-343A: 49             ROLA
-343B: 47             ASRA
-343C: 48             ASLA
-343D: 54             LSRB
-343E: 20 31          BRA    $3471
-3440: 39             RTS
-3441: 38 33          XANDCC #$33
-3443: 20 57          BRA    $349C
-3445: 49             ROLA
-3446: 4C             INCA
-3447: 4C             INCA
-3448: 49             ROLA
-3449: 41             NEGA
-344A: 4D             TSTA
-344B: 53             COMB
-344C: 20 45          BRA    $3493
-344E: 4C             INCA
-344F: 45             LSRA
-3450: 43             COMA
-3451: 54             LSRB
-3452: 52             XNCB
-3453: 4F             CLRA
-3454: 4E             XCLRA
-3455: 49             ROLA
-3456: 43             COMA
-3457: 53             COMB
-3458: 2C 20          BGE    $347A
-345A: 49             ROLA
-345B: 4E             XCLRA
-345C: 43             COMA
-345D: 2E 
+3435: 43             					;C
+3436: 4F             					;O
+3437: 50             					;P
+3438: 59             					;Y
+3439: 52             					;R
+343A: 49             					;I
+343B: 47             					;G
+343C: 48             					;H
+343D: 54             					;T
+343E: 20 								;
+343F: 31          						;1
+3440: 39             					;9
+3441: 38 								;8
+3442: 33      							;3    	
+3443: 20								;
+3444: 57          						;W
+3445: 49          						;I
+3446: 4C          						;L
+3447: 4C          						;L
+3448: 49          						;I
+3449: 41          						;A
+344A: 4D          						;M
+344B: 53          						;S
+344C: 20 								;
+344D: 45          						;E
+344E: 4C          						;L
+344F: 45          						;E
+3450: 43          						;C
+3451: 54          						;T
+3452: 52          						;R
+3453: 4F          						;O
+3454: 4E          						;N
+3455: 49          						;I
+3456: 43          						;C
+3457: 53          						;S
+3458: 2C          						;,
+3459: 20          						;	
+345A: 49          						;I
+345B: 4E          						;N
+345C: 43          						;C
+345D: 2E          						;.
 ;
 345E: 0A          
 345F: 32 2F          LEAS   $F,Y
@@ -8968,42 +8973,47 @@
 42F6: ED 28          STD    $8,Y
 42F8: 39             RTS
 ;CR4
-42F9: 43             COMA
-42FA: 4F             CLRA
-42FB: 50             NEGB
-42FC: 59             ROLB
-42FD: 52             XNCB
-42FE: 49             ROLA
-42FF: 47             ASRA
-4300: 48             ASLA
-4301: 54             LSRB
-4302: 20 31          BRA    $4335
-4304: 39             RTS
-4305: 38 33          XANDCC #$33
-4307: 20 57          BRA    $4360
-4309: 49             ROLA
-430A: 4C             INCA
-430B: 4C             INCA
-430C: 49             ROLA
-430D: 41             NEGA
-430E: 4D             TSTA
-430F: 53             COMB
-4310: 20 45          BRA    $4357
-4312: 4C             INCA
-4313: 45             LSRA
-4314: 43             COMA
-4315: 54             LSRB
-4316: 52             XNCB
-4317: 4F             CLRA
-4318: 4E             XCLRA
-4319: 49             ROLA
-431A: 43             COMA
-431B: 53             COMB
-431C: 2C 20          BGE    $433E
-431E: 49             ROLA
-431F: 4E             XCLRA
-4320: 43             COMA
-4321: 2E
+42F9: 43             					;C
+42FA: 4F             					;O
+42FB: 50             					;P
+42FC: 59             					;Y
+42FD: 52             					;R
+42FE: 49             					;I
+42FF: 47             					;G
+4300: 48             					;H
+4301: 54             					;T
+4302: 20 								;
+4303: 31          						;1
+4304: 39             					;9
+4305: 38 								;8
+4306: 33      							;3    	
+4307: 20								;
+4308: 57          						;W
+4309: 49          						;I
+430A: 4C          						;L
+430B: 4C          						;L
+430C: 49          						;I
+430D: 41          						;A
+430E: 4D          						;M
+430F: 53          						;S
+4310: 20 								;
+4311: 45          						;E
+4312: 4C          						;L
+4313: 45          						;E
+4314: 43          						;C
+4315: 54          						;T
+4316: 52          						;R
+4317: 4F          						;O
+4318: 4E          						;N
+4319: 49          						;I
+431A: 43          						;C
+431B: 53          						;S
+431C: 2C          						;,
+431D: 20          						;	
+431E: 49          						;I
+431F: 4E          						;N
+4320: 43          						;C
+4321: 2E          						;.
 ;
 4322: 34          
 4323: 06 8D          ROR    $8D
@@ -10374,52 +10384,52 @@
 *	.STOP							MUST terminate sound
 ;;
 ;QBOUNCE - bounce
-4DA9: 10          LSR    -$10,X
-4DAA: AB 42          ADDA   $2,U
-4DAC: 03 00          COM    $00
+4DA9: 10         
+4DAA: AB 42       
+4DAC: 03 00      
 ;QFIRE - player firing
-4DAE: 13             SYNC
-4DAF: AE 52          LDX    -$E,U
+4DAE: 13           
+4DAF: AE 52
 4DB1: 10 00 
 ;QBANG - bang
-4DB3: 28       NEG    $28
-4DB4: B3 60 10       SUBD   $6010
-4DB7: 58             ASLB
-4DB8: 20 00          BRA    $4DBA
+4DB3: 28      
+4DB4: B3 60 10      
+4DB7: 58           
+4DB8: 20 00       
 ;QWFIRE - warrior firing
-4DBA: 21 AD          BRN    $4D69
-4DBC: 50             NEGB
-4DBD: 10 48          ASLA
+4DBA: 21 AD       
+4DBC: 50         
+4DBD: 10 48       
 4DBF: 10 00 
 ;QPlDie - player ship being shot
 4DC1: 38
-4DC2: B8 79 0C       EORA   $790C
-4DC5: B7 79 80       STA    $7980
+4DC2: B8 79 0C     
+4DC5: B7 79 80     
 4DC8: 00
 ;QWorkCr - worker grabbing crystal 
-4DC9: 21          NEG    $21
-4DCA: AA 5A          ORA    -$6,U
-4DCC: 20 00          BRA    $4DCE
+4DC9: 21        
+4DCA: AA 5A       
+4DCC: 20 00        
 ;QWorkSi - worker delivering crystal
-4DCE: 21 A6          BRN    $4D76
-4DD0: 60 09          NEG    $9,X
+4DCE: 21 A6        
+4DD0: 60 09         
 4DD2: 00
 ;QSFire - player releasing sinibomb
-4DD3: 24          NEG    $24
-4DD4: AF 60          STX    $0,S
-4DD6: 10 52          XNCB
+4DD3: 24         
+4DD4: AF 60        
+4DD6: 10 52        
 4DD8: FF 00 
 ;QPlayCr - player picking up a crystal
 4DDA: 21      
-4DDB: A3 58          SUBD   -$8,U
-4DDD: 20 00          BRA    $4DDF
+4DDB: A3 58         
+4DDD: 20 00         
 ;QNEWSHI - player earning a new ship
-4DDF: 38 BC          XANDCC #$BC
-4DE1: 70 20 58       NEG    $2058
-4DE4: 20 00          BRA    $4DE6
+4DDF: 38 BC         
+4DE1: 70 20 58      
+4DE4: 20 00         
 ;QMesg - message displayed to player.
-4DE6: 21 BE          BRN    $4DA6
-4DE8: 60 30          NEG    -$10,Y
+4DE6: 21 BE        
+4DE8: 60 30        
 4DEA: 00
 ;QPlStr - Sound to alert player turn is starting
 4DEB: 38      
@@ -10435,7 +10445,7 @@
 4DFA: 40            
 4DFB: 00
 ;QCOIN 
-4DFC: 3F          NEG    $3F
+4DFC: 3F        
 4DFD: B0 7E 60
 4E00: 00
 ;;
