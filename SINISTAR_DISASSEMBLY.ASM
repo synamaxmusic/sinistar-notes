@@ -10374,52 +10374,52 @@
 *	.STOP							MUST terminate sound
 ;;
 ;QBOUNCE - bounce
-4DA9: 10
-4DAA: AB 42   
-4DAC: 03 00  
+4DA9: 10          LSR    -$10,X
+4DAA: AB 42          ADDA   $2,U
+4DAC: 03 00          COM    $00
 ;QFIRE - player firing
-4DAE: 13         
-4DAF: AE 52     
+4DAE: 13             SYNC
+4DAF: AE 52          LDX    -$E,U
 4DB1: 10 00 
 ;QBANG - bang
-4DB3: 28     
-4DB4: B3 60 10    
-4DB7: 58          
-4DB8: 20 00       
+4DB3: 28       NEG    $28
+4DB4: B3 60 10       SUBD   $6010
+4DB7: 58             ASLB
+4DB8: 20 00          BRA    $4DBA
 ;QWFIRE - warrior firing
-4DBA: 21 AD        
-4DBC: 50            
-4DBD: 10 48   
+4DBA: 21 AD          BRN    $4D69
+4DBC: 50             NEGB
+4DBD: 10 48          ASLA
 4DBF: 10 00 
 ;QPlDie - player ship being shot
 4DC1: 38
-4DC2: B8 79 0C     
-4DC5: B7 79 80     
+4DC2: B8 79 0C       EORA   $790C
+4DC5: B7 79 80       STA    $7980
 4DC8: 00
 ;QWorkCr - worker grabbing crystal 
-4DC9: 21         
-4DCA: AA 5A       
-4DCC: 20 00        
+4DC9: 21          NEG    $21
+4DCA: AA 5A          ORA    -$6,U
+4DCC: 20 00          BRA    $4DCE
 ;QWorkSi - worker delivering crystal
-4DCE: 21 A6         
-4DD0: 60 09        
+4DCE: 21 A6          BRN    $4D76
+4DD0: 60 09          NEG    $9,X
 4DD2: 00
 ;QSFire - player releasing sinibomb
-4DD3: 24        
-4DD4: AF 60       
-4DD6: 10 52        
+4DD3: 24          NEG    $24
+4DD4: AF 60          STX    $0,S
+4DD6: 10 52          XNCB
 4DD8: FF 00 
 ;QPlayCr - player picking up a crystal
 4DDA: 21      
-4DDB: A3 58          
-4DDD: 20 00      
+4DDB: A3 58          SUBD   -$8,U
+4DDD: 20 00          BRA    $4DDF
 ;QNEWSHI - player earning a new ship
-4DDF: 38 BC        
-4DE1: 70 20 58      
-4DE4: 20 00        
+4DDF: 38 BC          XANDCC #$BC
+4DE1: 70 20 58       NEG    $2058
+4DE4: 20 00          BRA    $4DE6
 ;QMesg - message displayed to player.
-4DE6: 21 BE        
-4DE8: 60 30        
+4DE6: 21 BE          BRN    $4DA6
+4DE8: 60 30          NEG    -$10,Y
 4DEA: 00
 ;QPlStr - Sound to alert player turn is starting
 4DEB: 38      
@@ -10435,17 +10435,17 @@
 4DFA: 40            
 4DFB: 00
 ;QCOIN 
-4DFC: 3F        
+4DFC: 3F          NEG    $3F
 4DFD: B0 7E 60
 4E00: 00
 ;;
 ;;FUNCTION TABLES
 ;;
 ;JOYSWI - joystick conversion
-4E01: 06      
-4E02: 04 00      
-4E04: 02 04        
-4E06: 00 02      
+4E01: 06          NEG    $06
+4E02: 04 00          LSR    $00
+4E04: 02 04          XNC    $04
+4E06: 00 02          NEG    $02
 4E08: 00
 ;JOYRTP - joystick rectangular to polar conversion 
 4E09: 00          NEG    $00
