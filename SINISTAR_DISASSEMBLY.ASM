@@ -7164,12 +7164,22 @@
 345B: 4E          						;N
 345C: 43          						;C
 345D: 2E          						;.
-;
-345E: 0A          
-345F: 32 2F          LEAS   $F,Y
-3461: 03 7E          COM    $7E
-3463: 37 F0          PULU   X,Y,S,PC
-3465: 2A 0E          BPL    $3475
+;;;;;;;;;;;;;;;;;
+;;
+;; SAM/EXEC.SRC
+;;
+;;;;;;;;;;;;;;;;;
+;;
+;; EXECUTIVE LOOP
+;;
+; start object list
+;EXEC
+345E: 0A 32 		 DEC	ESTATE		;are we overloaded?
+3460: 2F 03 		 BLE	1$
+3462: 7E 37 F0       JMP	VRLOAD		;overload handling, use none
+;1$
+3465: 2A 0E          BPL    $3475		;should we start next object list?
+;2$
 3467: AE 9F 98 42    LDX    [$9842]
 346B: 10 AE 94       LDY    [,X]
 346E: AD B8 02       JSR    [$02,Y]
@@ -7260,6 +7270,16 @@
 3536: 2F F2          BLE    $352A
 3538: 10 9E 1C       LDY    $1C
 353B: 6E B8 18       JMP    [$18,Y]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/EXECJNK.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; EXECUTIVE ROUTINES
+;;
+; miscellaneous exec stuff
+;EXECJNK
 353E: DE 40          LDU    $40
 3540: DC 42          LDD    $42
 3542: ED 44          STD    $4,U
@@ -7273,8 +7293,8 @@
 3551: 24 FC          BCC    $354F
 3553: A6 06          LDA    $6,X
 3555: 4C             INCA
-3556: 26 01          BNE    $3559
-3558: 3F             SWI
+3556: 26 01          BNE    $3559		;* * *TEMPORARY
+3558: 3F             SWI				;* * *TRAP
 3559: A7 06          STA    $6,X
 355B: A1 46          CMPA   $6,U
 355D: 25 08          BCS    $3567
@@ -7312,6 +7332,7 @@
 35A4: 96 8A          LDA    $8A
 35A6: 26 01          BNE    $35A9
 35A8: 39             RTS
+;
 35A9: 0F 53          CLR    $53
 35AB: CC 22 22       LDD    #$2222
 35AE: FD 81 80       STD    $8180
@@ -7456,10 +7477,12 @@
 36BD: 89 00          ADCA   #$00
 36BF: E3 2C          ADDD   $C,Y
 36C1: ED 2C          STD    $C,Y
-36C3: 96 80          LDA    $80
+;SCROLL	
+36C3: 96 80          LDA    $80			;scrolling and stars on?
 36C5: 85 08          BITA   #$08
 36C7: 26 01          BNE    $36CA
-36C9: 39             RTS
+36C9: 39             RTS				;no?, that's all folks
+;
 36CA: A6 25          LDA    $5,Y
 36CC: E6 26          LDB    $6,Y
 36CE: E3 2E          ADDD   $E,Y
@@ -7618,6 +7641,8 @@
 37D5: 97 87          STA    $87
 37D7: 97 86          STA    $86
 37D9: 39             RTS
+; scan control panel
+;SPANEL
 37DA: B6 C8 06       LDA    $C806
 37DD: 97 00          STA    $00
 37DF: 98 58          EORA   $58
@@ -7628,11 +7653,39 @@
 37E8: D7 58          STB    $58
 37EA: 8E 2E 24       LDX    #$2E24
 37ED: 7E E1 46       JMP    $E146
+; overload handling
+;VRLOAD
 37F0: 86 FF          LDA    #$FF
-37F2: 12             NOP
-37F3: 12             NOP
+;;					 STA	PCRAM			;;(this was NOP'd out)
+;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; WITT/RICHFIXE.SRC
+;; 
+;; A patch was inserted here to fix the overload flash.
+;;;;;;;;;;;;;;;;;;;;;;
+37F2: 12             NOP					; Eliminate overload flash
+37F3: 12             NOP					;   by avoiding PCRAM store.
+;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Back to EXECJNK.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;
 37F4: 0A 32          DEC    $32
 37F6: 7E 34 5E       JMP    $345E
+;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF EXECJNK.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/TRASCOM.SRC
+;;
+;;
+;; DYNAMIC STORAGE 'TRASH COMPACTING' ROUTINES
+;;
+;;;;;;;;;;;;;;;;;;;;;;
+; special trash compact after process or collision
+;SPTRASH
 37F9: 9F 00          STX    $00
 37FB: 8D 0A          BSR    $3807
 37FD: 9E 00          LDX    $00
@@ -7641,6 +7694,8 @@
 3802: 5F             CLRB
 3803: DD 88          STD    $88
 3805: 6E C4          JMP    ,U
+; trash compact one block or more if low
+;TRASCOM
 3807: 9E 6D          LDX    $6D
 3809: 8C BE C0       CMPX   #$BEC0
 380C: 25 19          BCS    $3827
@@ -7703,6 +7758,20 @@
 388B: 10 25 FF 78    LBCS   $3807
 388F: 3F             SWI
 3890: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF TRASCOM.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/NEWTUNE.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; TUNE ROUTINE
+;;
+; new tune
+;NEWTUNE
 3891: 34 56          PSHS   U,X,D
 3893: AE 66          LDX    $6,S
 3895: EE 81          LDU    ,X++
@@ -7721,6 +7790,8 @@
 38B3: B7 9F 91       STA    $9F91
 38B6: 8D 02          BSR    $38BA
 38B8: 35 D6          PULS   D,X,U,PC
+; tune loader								pass tune address in U
+;TNLOAD
 38BA: A6 C4          LDA    ,U
 38BC: 85 C0          BITA   #$C0
 38BE: 26 3E          BNE    $38FE
@@ -7756,6 +7827,7 @@
 38FE: 2A 10          BPL    $3910
 3900: C6 FF          LDB    #$FF
 3902: F7 C8 0E       STB    $C80E
+; THIS IS WHERE THE SOUND IS ACTUALLY PLAYED
 3905: B7 C8 0E       STA    $C80E
 3908: 33 41          LEAU   $1,U
 390A: 85 40          BITA   #$40
@@ -7768,10 +7840,23 @@
 3918: 97 54          STA    $54
 391A: DF 55          STU    $55
 391C: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF NEWTUNE.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/PLSHOOT.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; player shooting
+;PlShoot
+;					 TUNE   QFIRE
 391D: BD 38 91       JSR    $3891
-3920: 4D             TSTA
-3921: AE 96          LDX    [A,X]
-3923: 75 27 67       LSR    $2767
+3920: 4D AE          					;QFIRE POINTER
+;;
+3922: 96 75          LDA	SFREE
+3924: 27 67   		 BEQ	1$  
 3926: BD 43 4F       JSR    $434F
 3929: CC 4D 11       LDD    #$4D11
 392C: ED 88 12       STD    $12,X
@@ -7826,7 +7911,13 @@
 3985: AB C4          ADDA   ,U
 3987: A7 88 11       STA    $11,X
 398A: BD 43 5E       JSR    $435E
+;1$
 398D: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF PLSHOOT.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;
 398E: EC 05          LDD    $5,X
 3990: CA 7F          ORB    #$7F
 3992: A3 25          SUBD   $5,Y
@@ -32052,6 +32143,7 @@ FFA9: DD 42          STD    $42
 FFAB: 39             RTS
 FFAC: 00 00          NEG    $00
 FFAE: 00 00          NEG    $00
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; FALS/LAST.SRC - THIS ONE IS USED
 ;;
@@ -32062,6 +32154,7 @@ FFB3: ED 25          STD    $5,Y
 FFB5: E7 27          STB    $7,Y
 FFB7: 6F A8 10       CLR    $10,Y		;clear his clipping flags
 FFBA: 6E B8 1A       JMP    [$1A,Y]		;execute post-display routine, uses A,B,X,U
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 FFBD: 00 00          NEG    $00
 FFBF: 00 7F          NEG    $7F
