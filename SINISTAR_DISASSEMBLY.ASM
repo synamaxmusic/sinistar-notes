@@ -7918,6 +7918,14 @@
 ;; END OF PLSHOOT.SRC
 ;;
 ;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/PIXCHK.SRC
+;;
+;; PIXEL COLLISION CHECK
+;;
+;;;;;;;;;;;;;;;;;;;;;
+; pixel collision check routine
+;PIXCHK
 398E: EC 05          LDD    $5,X
 3990: CA 7F          ORB    #$7F
 3992: A3 25          SUBD   $5,Y
@@ -8009,6 +8017,9 @@
 3A47: 9E 5D          LDX    $5D
 3A49: 10 9E 5F       LDY    $5F
 3A4C: 39             RTS
+; find sinistar special bottommost edge
+;		pass collision table start in X, # pix in TEMP+1, returns in TEMP+2
+;SINBOTT
 3A4D: 34 10          PSHS   X
 3A4F: D6 01          LDB    $01
 3A51: 3A             ABX
@@ -8020,6 +8031,19 @@
 3A5C: 22 F6          BHI    $3A54
 3A5E: D7 02          STB    $02
 3A60: 35 90          PULS   X,PC
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF PIXCHK.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/BOUNCE.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; BOUNCE ROUTINE
+;;
+;BOUNCE
 3A62: A6 88 10       LDA    $10,X
 3A65: 85 03          BITA   #$03
 3A67: 27 09          BEQ    $3A72
@@ -8108,6 +8132,8 @@
 3B0F: 8A 02          ORA    #$02
 3B11: A7 A8 10       STA    $10,Y
 3B14: 39             RTS
+; multiply subroutine	D <= (D*[U])/$100  (D signed word ,[U] unsigned byte)
+;9$
 3B15: 97 00          STA    $00
 3B17: A6 C4          LDA    ,U
 3B19: 3D             MUL
@@ -8120,6 +8146,20 @@
 3B25: DB 01          ADDB   $01
 3B27: 89 00          ADCA   #$00
 3B29: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF BOUNCE.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/ADDSCOR.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 
+;; PLAYER SCORE AND SINIBOMB STATUS DISPLAY AND CHANGE
+;;
+; add bcd score to players score		pass score in D
+;ADDSCOR
 3B2A: 34 56          PSHS   U,X,D
 3B2C: 7C A0 0B       INC    $A00B
 3B2F: CE A0 02       LDU    #$A002
@@ -8164,6 +8204,8 @@
 3B89: BD 3C 0C       JSR    $3C0C
 3B8C: 20 B0          BRA    $3B3E
 3B8E: 35 D6          PULS   D,X,U,PC
+; add bcd number in D to 8 dig numb pointed to by X, returns overflow in carry
+;ADDBCD
 3B90: 34 16          PSHS   X,D
 3B92: A6 03          LDA    $3,X
 3B94: AB 61          ADDA   $1,S
@@ -8182,6 +8224,8 @@
 3BAB: 19             DAA
 3BAC: A7 84          STA    ,X
 3BAE: 35 96          PULS   D,X,PC
+; compare 8 digit bcd number pointed to by X to number pointed to by U
+;CMPBCD	
 3BB0: 34 06          PSHS   D
 3BB2: EC 84          LDD    ,X
 3BB4: 10 A3 C4       CMPD   ,U
@@ -8189,6 +8233,8 @@
 3BB9: EC 02          LDD    $2,X
 3BBB: 10 A3 42       CMPD   $2,U
 3BBE: 35 86          PULS   D,PC
+; update 'bonus at' score
+;UPBONUS	
 3BC0: 34 56          PSHS   U,X,D
 3BC2: B6 BF FF       LDA    $BFFF
 3BC5: 34 02          PSHS   A
@@ -8220,6 +8266,7 @@
 3C04: B7 BF FF       STA    $BFFF
 3C07: B7 C9 00       STA    $C900
 3C0A: 35 D6          PULS   D,X,U,PC
+; update ship display		pass count in A, dma constant in B
 ;UPSHIPS
 3C0C: 34 06          PSHS   D
 3C0E: 4A             DECA
@@ -8232,6 +8279,8 @@
 3C1B: FD CA 04       STD    $CA04
 3C1E: CC 2D D9       LDD    #$2DD9
 3C21: 20 1D          BRA    $3C40
+; update sinibomb display				pass sinibomb count in A, dma constant in B
+;UPBOMBS
 3C23: 34 06          PSHS   D
 3C25: 4A             DECA
 3C26: C6 89          LDB    #$89
@@ -8246,8 +8295,10 @@
 3C38: 35 02          PULS   A
 3C3A: FD CA 04       STD    $CA04
 3C3D: CC 2D E8       LDD    #$2DE8
+; update status display					pass image address in D, dma ctrl byte in 2,S
+;UPSTAT	
 3C40: FD CA 02       STD    $CA02
-3C43: CC 07 01       LDD    #$0701
+3C43: CC 07 01       LDD    #$0701		;LDD	#305!X404	set dma block size  (USED IN TAIL.SRC!!!)
 3C46: FD CA 06       STD    $CA06
 3C49: B6 BF FF       LDA    $BFFF
 3C4C: 34 02          PSHS   A
@@ -8259,14 +8310,20 @@
 3C5B: 35 02          PULS   A
 3C5D: B7 BF FF       STA    $BFFF
 3C60: B7 C9 00       STA    $C900
+;NOUPSTA
 3C63: 35 86          PULS   D,PC
+; score display task
+;SCOREDI
 3C65: B6 A0 0B       LDA    $A00B
 3C68: 27 05          BEQ    $3C6F
 3C6A: 8D 08          BSR    $3C74
 3C6C: 7F A0 0B       CLR    $A00B
+;1$					 SLEEP	LOOP
 3C6F: EC 3E          LDD    -$2,Y
 3C71: DD 42          STD    $42
 3C73: 39             RTS
+; update score routine
+;UPSCORE
 3C74: 34 56          PSHS   U,X,D
 3C76: B6 BF FF       LDA    $BFFF
 3C79: 34 02          PSHS   A
@@ -8295,6 +8352,7 @@
 3CAF: B7 BF FF       STA    $BFFF
 3CB2: B7 C9 00       STA    $C900
 3CB5: 35 D6          PULS   D,X,U,PC
+;
 3CB7: 97 00          STA    $00
 3CB9: A6 C4          LDA    ,U
 3CBB: 9A 00          ORA    $00
@@ -8312,6 +8370,20 @@
 3CD3: BD E2 06       JSR    $E206
 3CD6: 30 12          LEAX   -$E,X
 3CD8: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF ADDSCOR.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/ADDPIEC.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; ADD AND SUBTRACT SINISTAR PIECES
+;;
+; subtract a sinistar piece
+;SUBPIEC
 3CD9: 34 56          PSHS   U,X,D
 3CDB: BE A0 14       LDX    $A014
 3CDE: 8C 4F B2       CMPX   #$4FB2
@@ -8367,9 +8439,13 @@
 3D45: DC 8D          LDD    $8D
 3D47: ED 06          STD    $6,X
 3D49: 35 D6          PULS   D,X,U,PC
-3D4B: 12             NOP
+; Bob's 'queuer' sinistar explosion
+;SNXQUE
+3D4B: 12             NOP					;;(This confirms that Bob's SNXQUE explosion was removed)
 3D4C: 12             NOP
 3D4D: 39             RTS
+; add a sinistar piece
+;ADDPIEC
 3D4E: 34 16          PSHS   X,D
 3D50: BE A0 14       LDX    $A014
 3D53: BC A0 16       CMPX   $A016
