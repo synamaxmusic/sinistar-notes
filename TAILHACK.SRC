@@ -2,257 +2,318 @@ This is my attempt to get the unused ship tail source code to work with the fina
 I have replaced the labels with the final values defined in the EQU files found in the source codebase.
 "!.$" have been replaced with "&$"
 "!>" have been replaced with ">>"
-;----------------------------------------------------
-	INCLUDE	START
-	INCLVER	SAM,SINISTAR.EQU
-	INCLVER	SAM,PLSUNIT
+;vasm6809_oldstyle -ast -Fbin -o tailhackv2.bin tailhackv2.src
+		ORG 	0
+;		INCLUDE	START
+;		INCLVER	SAM,SINISTAR.EQU
+;		INCLVER	SAM,PLSUNIT
+		
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Equates
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;		
+PLSUNIT EQU		$9851
+OIDESC	EQU		$0014
+DHIGH 	EQU		$CA06
+DDEST 	EQU		$CA04
+DSOUR 	EQU		$CA02
+DCTRL 	EQU		$CA00
+DCNS  	EQU		$0010
+ODRWVEC	EQU		$0018
+OPDRWVE	EQU		$001A
+DOBJECT	EQU		$4422
+PLACCEL EQU		$9853
+NOPOST	EQU		$45EA
+SEEDS 	EQU		$982E			;FRANDOM macro in the final build
+								;just loads value at $982E into A.
+PMEMCTL	EQU		$BFFF
+MEMCTL	EQU		$C900
+IDSBOMB	EQU		$0B14    		;found in SAM/IMAGE.EQU
+IPLAYER	EQU		$0007
+WPLAYER	EQU		$9900
+DXWB  	EQU		$0040
+DXWT  	EQU		$0080
+DZSP  	EQU		$0008
+OLEFT 	EQU		$0006
+OLPOS 	EQU		$0005
+DSCY  	EQU		$0004
+DWBL  	EQU		$0002
+DTFL  	EQU		$0020
 
-	PUSHORG	SRAMSAV
-TAILDAT	RMB	140		tail random data
-	PULLORG	SRAMSAV
+INITRAM	EQU		$32F0
+PALETTE	EQU		$50CB
+TEMP  	EQU		$9800
+SINCOS	EQU		$47DA
+ASRD6 	EQU		$48E6
 
-	PUSHORG	BASSAV
-TAILL	RMB	1	\	tail l screen position
-TAILS	RMB	1	/	tail s screen position
-TAILDMA	RMB	1		tail flavor
-PLDRWVE	RMB	2		player erase-update-draw vector
-	PULLORG	BASSAV
+OSEED1	EQU		$0000
+OSEED2	EQU		$0002
 
-	PUSHORG	RAMSAV
-TAILBUF	RMB	3*5		tail data buffer
-	PULLORG	RAMSAV
+PLXQUE	EQU		$7C6A
 
-	PUSHORG	ROMSAVE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+BASSAV	SET		$9897 			;plenty of room for direct page ram
+
+		SETDP	$98		
+		
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Static RAM memory map
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;FEXPAND	=	$D000			;decompressed font sprites live here
+;S0			=	$D4F6			;start of small font data
+;SPER  		=	$D73E
+;SINIMAG    =	$D77C
+;			=	$D870			;used as Sinistar Image Pointer in MICA/SNXTSK.SRC
+;CRIMAGE	=	$DC76
+;RISBOMB	=	$DC7A			;SAM'S SRAMSAVE SET
+;RAMHSC		=	$DC94    		;High score stuff
+;RAMLSC		=	$DE2A			;High score stuff	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		
+;		PUSHORG	SRAMSAV
+		ORG		$DC94			;;(let's overwrite High score RAM)
+TAILDAT	RMB		140				;tail random data
+;		PULLORG	SRAMSAV
+
+
+
+;		PUSHORG	BASSAV
+		ORG		BASSAV
+TAILL	RMB		1				;\ tail l screen position
+TAILS	RMB		1				;/ tail s screen position
+TAILDMA	RMB		1				;tail flavor
+PLDRWVE	RMB		2				;player erase-update-draw vector
+;		PULLORG	BASSAV
+
+;		PUSHORG	RAMSAV
+		ORG		$B0C0			;empty space in extended RAM
+TAILBUF	RMB		3*5				;tail data buffer
+;		PULLORG	RAMSAV
+
+;		PUSHORG	ROMSAVE
+		ORG		$F09F			;start of RAM/ROM test in ROM 11
 
 * erase tail on player ship
-ETAIL	LDX	$0014,Y
-	LDD	#305!X404	* * * FOR DMA BUG
-	STD	$CA06
-	LDD	TAILL
-	STD	$CA04
-	LDD	#TAILBUF
-	STD	$CA02
-	LDA	TAILDMA
-	ORA	#$10
-	STA	$CA00
-	JMP	[PLDRWVE]
-
+ETAIL	LDX		OIDESC,Y
+		LDD     #$0701			;LDD	#305!X404	set dma block size * * * FOR DMA BUG
+		STD		DHIGH
+		LDD		TAILL
+		STD		DDEST
+		LDD		#TAILBUF
+		STD		DSOUR
+		LDA		TAILDMA
+		ORA		#DCNS
+		STA		DCTRL
+		JMP		[PLDRWVE]
+		
 * change image of tail on player ship
-CTAIL	LDD	#ETAIL
-	STD	$0018,Y
-	LDD	#$4422
-	STD	PLDRWVE
-	LDD	#TAIL
-	STD	$001A,Y
+CTAIL	LDD		#ETAIL
+		STD		ODRWVEC,Y
+		LDD		#DOBJECT
+		STD		PLDRWVE
+		LDD		#TAIL
+		STD		OPDRWVE,Y
 * draw tail in player ship
-TAIL	LDB	$9853
-	LBEQ	$45EA
-	ASLB
-	CLRA
-	ADDD	#TAILDAT
-	TFR	D,U
-;;
-;;	FRANDOM	OSEED1,BYTE
-;;
-	ANDA	#3F
-	LEAU	A,U
-	STU	$CA02
-	LDD	#TAILBUF
-	STD	$CA04
-;; (not sure how to change #305!X404)
-	LDD	#305!X404	* * * FOR DMA BUG
-;;
-	STD	$CA06
-	LDA	$BFFF
-	PSHS	A
-	ANDA	#!N4
-	STA	$BFFF
-	STA	$C900
-	CLR	$CA00
-	LDD	#$0B14
-	STD	$CA02
-	LDA	#$80+$40+$10+$08
-	STA	$CA00
+TAIL	LDB		PLACCEL
+		;; NEW CODE START ;;
+		JSR		$42F9			;; JUMP TO CR4
+		ORG		$42F9
+		;; NEW CODE END ;;
+		LBEQ	NOPOST			;; we get an error so we'll have to relocate
+		;; NEW CODE START ;;	;; this closer to NOPOST and RTS back
+		RTS
+		ORG 	$F0D4
+		;; NEW CODE END ;;
+		ASLB
+		CLRA
+		ADDD	#TAILDAT
+		TFR		D,U
+;		FRANDOM	OSEED1,BYTE
+		lda		SEEDS
+		ANDA	#$3F
+		LEAU	A,U
+		STU		DSOUR
+		LDD		#TAILBUF
+		STD		DDEST
+		LDD     #$0701			;LDD	#305!X404	set dma block size * * * FOR DMA BUG
+		STD		DHIGH
+		LDA		PMEMCTL
+		PSHS	A
+;		ANDA	#!N4
+		anda    #$FB			;;originally #!N4 (so FF - 4 = FB)
+		STA		PMEMCTL
+		STA		MEMCTL
+		CLR		DCTRL
+		LDD		#IDSBOMB
+		STD		DSOUR
+		LDA		#DXWT+DXWB+DCNS+DZSP
+		STA		DCTRL
 *<<< optimize this >>>
-	PULS	A
-	STA	$BFFF
-	STA	$C900
-	LDD	#TAILBUF
-	STD	$CA02
-	LDB	$14+1,Y
-	SUBB	#$07&$FF
-	LSRB
-	LSRB
-	LDX	#TAILTBL
-	ABX
-	LDA	1,X
-	ADDA	$06,Y
-	STA	$CA04+1
-	STA	TAILS
-	LDA	X
-	CLRB
-	ASRA
-	RORB
-	ADDD	$0005,Y
-	STA	$CA04
-	STA	TAILL
-	LDA	#$08+$04+$02	
-	BCS	1$
-	ORA	#$20
-1$	STA	$CA00	
-	STA	TAILDMA
-	JMP	$45EA
+		PULS	A
+		STA		PMEMCTL
+		STA		MEMCTL
+		LDD		#TAILBUF
+		STD		DSOUR
+		LDB		OIDESC+1,Y
+		SUBB	#IPLAYER&$FF
+		LSRB	
+		LSRB	
+		LDX		#TAILTBL		;;MOVE TAILTBL?		
+		ABX	
+		LDA		1,X
+		ADDA	OLEFT,Y
+		STA		DDEST+1
+		STA		TAILS
+		LDA		,X				;;need to add the comma
+		CLRB	
+		ASRA	
+		RORB	
+		ADDD	OLPOS,Y
+		STA		DDEST
+		STA		TAILL
+		LDA		#DZSP+DSCY+DWBL	
+		BCS		1$
+		ORA		#DTFL
+1$		STA		DCTRL	
+		STA		TAILDMA
+		JMP		NOPOST
 
-	LOCAL
+		LOCAL
 * initialize random tail data
-;;	VECTOR	SYSVECT
-	JSR	$31D3
-;;
-	LDX	#TAILDAT
-	CLRA
-	LDB	#0C0
-	JSR	$32F0
-	JSR	$32F0
-	LDX	#$50CB
-	CLR	$9800
-1$	LDA	X
-	BEQ	2$
-	BITA	#0C0
-	BEQ	6$
-	BITA	#30
-	BNE	2$
-6$	LDA	#40
-	STA	$9800+1
-;;
-;;5$	RANDOM	OSEED1,BYTE
-;;
-5$	LDA	#$00
-	JSR	$4802
-;;
-	ANDA	#3F
-	JSR	$47DA
-	CLRB
-	JSR	$48E6
-	PSHS	D
-;;
-;;	RANDOM	OSEED2,BYTE
-;;
-	LDA	#$02
-	JSR	$4802
-;;
-	TFR	A,B
-	ANDB	#7F
-	CLRA
-	ADDD	S++
-	LSRA
-	RORB
-	LDU	#TAILDAT
-	LEAU	D,U
-	LDA	U
-	BCS	3$
-	ANDA	#0F
-	STA	$9800+2
-	LDA	$9800
-;;
-;;	RPT	4,ASLA
-;;
-	ASLA
-	ASLA
-	ASLA
-	ASLA
-;;
-	ORA	$9800+2	
-	BRA	4$
-3$	ANDA	#0F0
-	ORA	$9800
-4$	STA	U
-	DEC	$9800+1
-	BNE	5$
-2$	INC	$9800
-	LEAX	1,X
-	CMPX	#$50CB+10
-	BLO	1$
-	RTS
+;		VECTOR	SYSVECT
+;		ORG		$31D3			;;Insert hook to SYSVECT
+;		JSR		$F145			;;by overwriting three NOPs
+;		rorg	$F145			
+		LDX		#TAILDAT
+		CLRA
+		LDB		#$C0
+		JSR		INITRAM
+		JSR		INITRAM
+		LDX		#PALETTE
+		CLR		TEMP
+11$		LDA		,X
+		BEQ		2$
+		BITA	#$C0
+		BEQ		6$
+		BITA	#$30
+		BNE		2$
+6$		LDA		#$40
+		STA		TEMP+1
+;5$		RANDOM	OSEED1,BYTE
+		;
+5$		LDA     #$00
+		JSR     $4802
+		;
+		ANDA	#$3F
+		JSR		SINCOS
+		CLRB	
+		JSR		ASRD6
+		PSHS	D
+;		RANDOM	OSEED2,BYTE
+		;
+		LDA     #$02
+		JSR     $4802
+		;
+		TFR		A,B
+		ANDB	#$7F
+		CLRA	
+		ADDD	,S++
+		LSRA	
+		RORB	
+		LDU		#TAILDAT
+		LEAU	D,U
+		LDA		,U
+		BCS		3$
+		ANDA	#$0F
+		STA		TEMP+2
+		LDA		TEMP
+		ASLA
+		ASLA
+		ASLA
+		ASLA
+		ORA		TEMP+2	
+		BRA		4$
+3$		ANDA	#$F0
+		ORA		TEMP
+4$		STA		,U
+		DEC		TEMP+1
+		BNE		5$
+2$		INC		TEMP
+		LEAX	1,X
+		CMPX	#PALETTE+10
+		BLO		11$
+		RTS
 
-;;	VECTOR	INIVECT
 
-;;	CLRD			;;(CLRD is just CLRA followed by CLRB)
-	CLRA
-	CLRB
-	STD	TAILL		zero tail screen position
+;		VECTOR	INIVECT
+;
+;  The VECTOR macro is confusing but it appears to link a bunch of JSRs together and
+;  then execute everything after reaching the last jump, using RTS to go back to each previous
+;  INIVECT routine for that specific programmer.
+;
+;  The jumps for Inivect start at 309A, then, 5189, 51ED, 7415, 82F1, and finally 8E55.
+;  Once it reaches 8E55, it starts executing all the instructions and chains all the
+;  INIVECT routines from each programmer and executes it as one giant routine.
+;
+;  8E55 is the patch "SAM/FIXPLUNI.SRC" and has a bunch of NOPs at 8E55...
+;  maybe we can put our patch here?
+;
+;
+;		ORG		$F1B1
+		CLRA
+		CLRB
+		STD		TAILL			;zero tail screen position
 *<<< add to player initialization >>>
-	LDD	#$4422	initialize player erase-update-draw vector
-	STD	PLDRWVE
-	LDD	#ETAIL		give player erase tail erase-update-draw vector
-	STD	$0018+$9900
-	LDD	#TAIL		give player tail post-draw vector
-	STD	$001A+$9900
-	RTS
+		LDD		#DOBJECT		;initialize player erase-update-draw vector
+		STD		PLDRWVE
+		LDD		#ETAIL			;give player erase tail erase-update-draw vector
+		STD		ODRWVEC+WPLAYER
+		LDD		#TAIL			;give player tail post-draw vector
+		STD		OPDRWVE+WPLAYER
+		RTS
 
+		
+		
 * patch to player image rotation
-	ERR	OLD ADDRESS
-	PUSHORG	$3789
-	JSR	100$
-	PULLORG
+;		ERR		OLD ADDRESS
+;		PUSHORG	$3789
+		;Should this be 378A?
+;		JSR		100$
+;		PULLORG
+;		ORG		$F1C7
 100$
 * * *
-	STX	PLDRWVE
-	LDD	#CTAIL		give player change tail post-draw vector
-	STD	$001A,Y
+		STX		PLDRWVE
+		LDD		#CTAIL			;give player change tail post-draw vector
+		STD		OPDRWVE,Y
 * * *
-	RTS
+		RTS
 
 * tail offset table
-TAILTBL	FDB	$FC02,$FC02,$FD01,$FDFF,$FFFE,$FFFD,$00FD,$FFFD
-	FDB	$02FB,$02FD,$05FD,$05FD,$07FE,$08FF,$0900,$0A01
-	FDB	$0A03,$0A02,$0905,$0905,$0707,$0509,$040A,$020A
-	FDB	$020A,$020A,$010A,$0009,$FF08,$FD05,$FD05,$FC02
+TAILTBL	FDB		$FC02,$FC02,$FD01,$FDFF,$FFFE,$FFFD,$00FD,$FFFD
+		FDB		$02FB,$02FD,$05FD,$05FD,$07FE,$08FF,$0900,$0A01
+		FDB		$0A03,$0A02,$0905,$0905,$0707,$0509,$040A,$020A
+		FDB		$020A,$020A,$010A,$0009,$FF08,$FD05,$FD05,$FC02
 
 *<<< for Noah >>>
-	ERR	OLD ADDRESS
-	PUSHORG	$6F51
-	JSR	101$
-	PULLORG
+;		ERR		OLD ADDRESS
+;		PUSHORG	$6F51
+		;6F51 is AMOA address, 736D is final build address!!!
+;		JSR		101$
+;		PULLORG
+;		ORG		$F210
 101$
 * * *
-	LDD	#$45EA		turn off player's tail
-	STD	$001A,X
+		LDD		#NOPOST			;turn off player's tail
+		STD		OPDRWVE,X
 * * *
-  	JSR	$7C6A			* START UP PLAYER EXPLOSION
-	RTS
-
-	PULLORG	ROMSAVE
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-VECTOR	MACRO	N1
-	BLIST
-	LOCAL
-.$$	SET	*
-	ORG	N1
-	JSR	.$$
-	ORG	.$$
-	HOOK	N1
-	MLIST
-	ENDM
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-* fast random number generator
-FRANDOM	MACRO	SOFF,RNG,OFS
-	BLIST
-	IFIDN	<RNG>,<WORD>
-	LDD	SOFF+SEEDS
-	ELSE
-	LDA	SOFF+SEEDS
-	IFNIDN	<RNG>,<BYTE>
-	IFNB	<RNG>
-	LDB	#RNG
-	ENDIF
-	MUL
-	IFNB	<OFS>
-	ADDA	#OFS
-	ENDIF
-	ENDIF
-	ENDIF
-	MLIST
-	ENDM
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		JSR		PLXQUE			;* START UP PLAYER EXPLOSION
+		RTS
+		;;;;;;;;;;
+		END
+		;;;;;;;;;;
+		PULLORG	ROMSAVE
