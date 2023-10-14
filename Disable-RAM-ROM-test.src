@@ -1,0 +1,32 @@
+Step 1:
+
+At $F063 and $F069, replace the instructions with 5 NOPs:
+
+F063: 20 3A          BRA    $F09F
+F065: 10 8E F0 6C    LDY    #$F06C
+F069: 7E F2 BD       JMP    $F2BD
+
+F063: 12             NOP
+F064: 12             NOP          
+F065: 10 8E F0 6C    LDY    #$F06C
+F069: 12             NOP 
+F06A: 12             NOP 
+F06B: 12             NOP 
+
+This will skip the RAM/ROM check, which will also prevent the watchdog from being triggered.
+
+Step 2:
+
+To get $2D2 bytes of ROM space, do the following:
+
+Change the jump address at $F09D from 7E F1 FD to 7E 80 2E.
+
+Paste the following data at $802E:
+8E 58 00 30 1F C6 39 F7 CB FF 8C 00 00 26 F4 4A 26 EE 6E A4 12 12 53 59 4E 41 4D 41 58 20 4D 4F 44 12
+
+Basically, we're taking the instructions located at $F1FD and rerouting it to copyright text at $802E.
+
+The space from $F09F to $F370 can be used to insert new code.
+
+
+
