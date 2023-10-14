@@ -1,8 +1,63 @@
-This is my attempt to get the unused ship tail source code to work with the final build of Sinistar.
-I have replaced the labels with the final values defined in the EQU files found in the source codebase.
-"!.$" have been replaced with "&$"
-"!>" have been replaced with ">>"
-;vasm6809_oldstyle -ast -Fbin -o tailhackv2.bin tailhackv2.src
+;;
+;;   SINISTAR "TAIL" MOD by SynaMax (10/14/23)
+;;
+;;   Original unused source file:
+;;   https://github.com/historicalsource/sinistar/blob/main/SAM/TAIL.SRC
+;;
+;;   Recreates a removed player ship "exhaust tail" graphic.
+;;
+;;   ROMs 4, 5, 8, 11 have to be modified.  ROM 04 = $3000-3FFF
+;;					    ROM 05 = $4000-4FFF
+;;					    ROM 08 = $7000-7FFF
+;;					    ROM 11 = $F000-FFFF
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;   While looking through the Sinistar source codebase, I stumbled
+;;   upon an unused source file that greatly intriged me.
+;;
+;;   Sam Dicker wrote a routine for an exhaust "tail" graphic that 
+;;   displays whenever the ship moves.  Two patches at the end
+;;   reference address locations that match up with the "sinistarp"
+;;   ROM set.  I think it's save to assume that this was intended 
+;;   to be included and seen at the AMOA show in November 1982, 
+;;   but that never happened.
+;;
+;;   I never knew this feature existed and I don't think anyone
+;;   from the dev team has mentioned it before in interviews.
+;;   
+;;   The code itself is buggy.  It takes up a lot of RAM and
+;;   crashes the game after warping to the next zone.
+;;
+;;   Considering the large amount of Static RAM reserved for
+;;   this routine, I was assuming to see a much longer tail but
+;;   only a tiny one can be seen.
+;;
+;;   It's possible to see a longer tail by uncommenting and
+;;   modifying lines 324 and 348, however the tail doesn't 
+;;   scroll along with the star background.  This doesn't look
+;;   right.
+;;  
+;;   Despite it's buggy, incomplete nature, it is absolutely
+;;   incredible to be able to reassemble this previously- 
+;;   unheard-of code and patch it into the game.  This tail graphic
+;;   hasn't been seen by anyone since 1982; 41 years ago!
+;;
+;;  Changes to the code include: 
+;;
+;;    * "!.$" have been replaced with "&$"
+;;    * Macros for FRANDOM, RANDOM, VECTOR have been replaced
+;;      the raw instructions found in dissassembly.
+;;    * LDA X is now LDA ,X
+;;    * ORG instructions are used instead of PUSHORG and
+;;      PULLORG macros
+;;
+;;  To build this code, launch vasm and type in the following:
+;;
+;;  vasm6809_oldstyle -ast -Fbin -o tailhack.bin tailhack.src
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 	ORG 	0
 ;	INCLUDE	START
 ;	INCLVER	SAM,SINISTAR.EQU
@@ -25,11 +80,11 @@ OPDRWVE	EQU	$001A
 DOBJECT	EQU	$4422
 PLACCEL EQU	$9853
 NOPOST	EQU	$45EA
-SEEDS 	EQU	$982E			;FRANDOM macro in the final build
-					;just loads value at $982E into A.
+SEEDS 	EQU	$982E			;; FRANDOM macro in the final build
+					;; just loads value at $982E into A.
 PMEMCTL	EQU	$BFFF
 MEMCTL	EQU	$C900
-IDSBOMB	EQU	$0B14    		;found in SAM/IMAGE.EQU
+IDSBOMB	EQU	$0B14			;; found in SAM/IMAGE.EQU
 IPLAYER	EQU	$0007
 WPLAYER	EQU	$9900
 DXWB  	EQU	$0040
@@ -54,7 +109,7 @@ PLXQUE	EQU	$7C6A
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-BASSAV	SET	$9897 			;plenty of room for direct page ram
+BASSAV	SET	$9897 			;; plenty of room for direct page ram
 
 	SETDP	$98		
 		
@@ -63,19 +118,19 @@ BASSAV	SET	$9897 			;plenty of room for direct page ram
 ;; Static RAM memory map
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;FEXPAND   =	$D000			;decompressed font sprites live here
-;S0	   =	$D4F6			;start of small font data
-;SPER  	   =	$D73E
-;SINIMAG   =	$D77C
-;	   =	$D870			;used as Sinistar Image Pointer in MICA/SNXTSK.SRC
-;CRIMAGE   =	$DC76
-;RISBOMB   =	$DC7A			;SAM'S SRAMSAVE SET
-;RAMHSC	   =	$DC94    		;High score stuff
-;RAMLSC	   =	$DE2A			;High score stuff	
+;FEXPAND =	$D000			;; decompressed font sprites live here
+;S0	 =	$D4F6			;; start of small font data
+;SPER 	 =	$D73E
+;SINIMAG =	$D77C
+;	 =	$D870			;; used as Sinistar Image Pointer in MICA/SNXTSK.SRC
+;CRIMAGE =	$DC76
+;RISBOMB =	$DC7A			;; SAM'S SRAMSAVE SET
+;RAMHSC	 =	$DC94    		;; High score stuff
+;RAMLSC	 =	$DE2A			;; High score stuff	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		
 ;	PUSHORG	SRAMSAV
-	ORG	$DC94			;;(let's overwrite High score RAM)
+	ORG	$DC94			;; (let's overwrite High score RAM)
 TAILDAT	RMB	140			;tail random data
 ;	PULLORG	SRAMSAV
 
@@ -90,7 +145,7 @@ PLDRWVE	RMB	2			;player erase-update-draw vector
 ;	PULLORG	BASSAV
 
 ;	PUSHORG	RAMSAV
-	ORG	$B0C0			;empty space in extended RAM
+	ORG	$B0C0			;; (empty space in extended RAM)
 TAILBUF	RMB	3*5			;tail data buffer
 ;	PULLORG	RAMSAV
 
@@ -133,7 +188,9 @@ TAIL	LDB	PLACCEL
 	ADDD	#TAILDAT
 	TFR	D,U
 ;	FRANDOM	OSEED1,BYTE
-	lda	SEEDS
+	;;
+	lda	SEEDS			;; (what FRANDOM actually does)
+	;;
 	ANDA	#$3F
 	LEAU	A,U
 	STU	DSOUR
@@ -144,7 +201,7 @@ TAIL	LDB	PLACCEL
 	LDA	PMEMCTL
 	PSHS	A
 ;	ANDA	#!N4
-	anda    #$FB			;;originally #!N4 (so FF - 4 = FB)
+	anda    #$FB			;; originally #!N4 (so FF - 4 = FB)
 	STA	PMEMCTL
 	STA	MEMCTL
 	CLR	DCTRL
@@ -162,13 +219,13 @@ TAIL	LDB	PLACCEL
 	SUBB	#IPLAYER&$FF
 	LSRB	
 	LSRB	
-	LDX	#TAILTBL		;;MOVE TAILTBL?		
+	LDX	#TAILTBL				
 	ABX	
 	LDA	1,X
 	ADDA	OLEFT,Y
 	STA	DDEST+1
 	STA	TAILS
-	LDA	,X			;;need to add the comma
+	LDA	,X			;; need to add the comma
 	CLRB	
 	ASRA	
 	RORB	
@@ -185,9 +242,9 @@ TAIL	LDB	PLACCEL
 	LOCAL
 * initialize random tail data
 ;	VECTOR	SYSVECT
-;	ORG	$31D3			;;Insert hook to SYSVECT
-;	JSR	$F145			;;by overwriting three NOPs
-;	rorg	$F145			
+	ORG	$31D3			;; Insert hook to SYSVECT
+	JSR	$F147			;; by overwriting three NOPs
+	org	$F147			;; at $31D3 with JSR $F147
 	LDX	#TAILDAT
 	CLRA
 	LDB	#$C0
@@ -249,21 +306,28 @@ TAIL	LDB	PLACCEL
 	RTS
 
 
-;	VECTOR	INIVECT
-;
-;  The VECTOR macro is confusing but it appears to link a bunch of JSRs together and
-;  then execute everything after reaching the last jump, using RTS to go back to each previous
-;  INIVECT routine for that specific programmer.
-;
-;  The jumps for Inivect start at 309A, then, 5189, 51ED, 7415, 82F1, and finally 8E55.
-;  Once it reaches 8E55, it starts executing all the instructions and chains all the
-;  INIVECT routines from each programmer and executes it as one giant routine.
-;
-;  8E55 is the patch "SAM/FIXPLUNI.SRC" and has a bunch of NOPs at 8E55...
-;  maybe we can put our patch here?
-;
-;
-;	ORG	$F1B1
+;;	VECTOR	INIVECT
+;;
+;;  The VECTOR macro is confusing but it appears to link a bunch of JSRs together and
+;;  then execute everything after reaching the last jump, using RTS to go back to each previous
+;;  INIVECT routine for that specific programmer.
+;;
+;;  The jumps for Inivect start at 309A (Sam), then, 5189, 51ED (Witt), 7415 (Noah), 82F1 (RJ),
+;;  and finally 8E55.
+;;  Once it reaches 8E55, it starts executing all the instructions and chains all the
+;;  INIVECT routines from each programmer and executes it as one giant routine.
+;;
+;;  8E55 is the patch "SAM/FIXPLUNI.SRC" and has a bunch of NOPs at 8E55...
+;;  maybe we can put our patch here?
+;;
+;;  maincpu.rw@8e55 = bdf1
+;;  maincpu.rb@8e57 = b1
+;;
+;;  After some initial tests, it seems that this patch actually makes the game more unstable?
+;;
+;;	ORG	$8E55
+;;	JSR	$F1B1
+;;	ORG	$F1B1
 	CLRA
 	CLRB
 	STD	TAILL			;zero tail screen position
@@ -281,12 +345,25 @@ TAIL	LDB	PLACCEL
 * patch to player image rotation
 ;	ERR	OLD ADDRESS
 ;	PUSHORG	$3789
-	;Should this be 378A?
-;	JSR	100$
+	ORG	$378A
+;;  
+;;  We're very lucky to have the original addresses here
+;;  match up with the earlier AMOA '82 build.  This helped
+;;  me figure out where the instructions were located in
+;;  the final build.  This patch was off by one byte, but
+;;  the other patch was way off.
+;;
+	JSR	100$
 ;	PULLORG
-;	ORG	$F1C7
+	ORG	$F1C7			;; (returning to the main chunk of code)
 100$
 * * *
+	;;
+;	STX	ODRWVEC,Y		;; (I originally added this back since it gets
+					;; overwritten by JSR at $378A, but it doesn't
+					;; erase the tail after every frame.  It's a
+					;; cool effect, but not what we want)
+	;;
 	STX	PLDRWVE
 	LDD	#CTAIL			;give player change tail post-draw vector
 	STD	OPDRWVE,Y
@@ -303,9 +380,10 @@ TAILTBL	FDB	$FC02,$FC02,$FD01,$FDFF,$FFFE,$FFFD,$00FD,$FFFD
 ;	ERR	OLD ADDRESS
 ;	PUSHORG	$6F51
 	;6F51 is AMOA address, 736D is final build address!!!
-;	JSR	101$
+	ORG	$736D
+	JSR	101$
 ;	PULLORG
-;	ORG	$F210
+	ORG	$F210			;; (change to $F213 if including "STX	ODRWVEC,Y")
 101$
 * * *
 	LDD	#NOPOST			;turn off player's tail
@@ -313,7 +391,17 @@ TAILTBL	FDB	$FC02,$FC02,$FD01,$FDFF,$FFFE,$FFFD,$00FD,$FFFD
 * * *
 	JSR	PLXQUE			;* START UP PLAYER EXPLOSION
 	RTS
-	;;;;;;;;;;
+;	PULLORG	ROMSAVE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+;; Patch to avoid triggering copyright protection and to skip
+;; ROM/RAM "Rug" test which has been overwritten by this new code.
+	ORG	$F063
+	NOP
+	NOP
+	ORG	$F069
+	NOP
+	NOP
+	NOP
+
 	END
-	;;;;;;;;;;
-	PULLORG	ROMSAVE
