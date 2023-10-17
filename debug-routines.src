@@ -1,6 +1,11 @@
-The following is code found in WITT/AOE.SRC, WITT/RICH.EQU,
-and SAM/BARGRAPH.SRC that allows debug graphs to be drawn 
-on screen.
+;; The following is code found in WITT/AOE.SRC, WITT/RICH.EQU,
+;; and SAM/BARGRAPH.SRC that allows debug graphs to be drawn 
+;; on screen.
+
+ROMSAVE SET	$F09F		;;(overwrite ROM/RAM test)
+BASSAVE	SET	$9897		;starting address of direct page ram ;;(starts at $9800)
+RAMSAVE	SET	$B0C0		;starting address of extended ram    ;;(starts at $9900)
+SRAMSAV	SET	$DC94		;starting address of static ram      ;;(overwrites high score)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -33,15 +38,18 @@ WAgg  	EQU	$A03C		;;Warrior Aggression
 PALETTE	EQU	$50CB
 TEMP  	EQU	$9800
 
+	SETDP	$98
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;  WITT/RICH.EQU
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-	IFDEF	DIAGNOSE
-	PUSHORG	0
-	rmb	1		* 0 Invisible graph
+;	IFDEF	DIAGNOSE
+;	PUSHORG	0
+	ORG 0
+DUMMY0		rmb	1		* 0 Invisible graph
 GMinutes	rmb	1	* 1 Play time in minutes
 GSeconds	rmb	1	* 2   and seconds.
 GAggression	rmb	1	* 3 Warrior aggression (high byte)
@@ -50,37 +58,44 @@ GDistance	rmb	0	* 5 Distance
 GANANG		rmb	1	* 5 Animation angle of squadron leader.
 GVelocity	rmb	0	* 6 Velocity
 GFLANG		rmb	1	* 6 Flight angle of squadron leader.
-	rmb	1		* 7 Special
-	rmb	1		* 8   Effects
+DUMMY1		rmb	1		* 7 Special
+DUMMY2		rmb	1		* 8   Effects
 GMWaDrift	rmb	1	* 9 The # of Drifting warriors
 GMWaAttack	rmb	1	* A The # of Attacking warriors
 GMWaMine	rmb	1	* B The # of Mining warriors
 GMWaTail	rmb	1	* C The # of Guarding warriors
 GMWaInt		rmb	1	* D The # of Intercepting warriors
-		rmb	1	* E <SPECIAL EFFECT>
-		rmb	1	* F
-	IFLT	$10-*
-	ERR	Too Many Diagnostic Bars
-	ENDIF	0to15.
-	PULLORG
-	ENDIF	Diagnose
+DUMMY3		rmb	1		* E <SPECIAL EFFECT>
+DUMMY4		rmb	1		* F
+;	IFLT	$10-*
+;	ERR	Too Many Diagnostic Bars
+;	ENDIF	0to15.
+;	PULLORG
+;	ENDIF	Diagnose
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 BARGRAPH
-	PUSHORG	RAMSAVE
+;	PUSHORG	RAMSAVE
+	ORG	RAMSAVE
 PGRAPH	RMB	10	\	previous bar graph lengths ( values/4)
 GRAPH	RMB	10	/	bar graph values
-	PULLORG	RAMSAVE
+;	PULLORG	RAMSAVE
 
-	PUSHORG	ROMSAVE
+;	PUSHORG	ROMSAVE
+;	ORG	ROMSAVE
 
-	VECTOR	INIVECT
-	LDD	#9999		draw bar graph right end line
-	LDX	#75DA		
+;	VECTOR	INIVECT
+	;;
+	ORG	$8E55		;; insert hook for INIVECT by
+	JSR	ROMSAVE		;; overwriting three NOPs at $8E55
+	ORG	ROMSAVE		;; and then we go back to $F09F
+	;;
+	LDD	#$9999		draw bar graph right end line
+	LDX	#$75DA		
 1$	STD	X		
-	LEAX	100,X		
-	CMPX	#8EDA		
+	LEAX	$100,X		
+	CMPX	#$8EDA		
 	BLO	1$		
 	LDX	#PGRAPH		set bar graph lengths/zero initial values
 	LDU	#GRAPH		
