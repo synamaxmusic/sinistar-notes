@@ -87,7 +87,6 @@ JUNKTIME	rmb	2	;;(TAKEN FROM RICHS DEBUG STUFF)
 ;	PULLORG	RAMSAVE
 
 ;	PUSHORG	ROMSAVE
-;	ORG	ROMSAVE
 
 ;	VECTOR	INIVECT
 	;;
@@ -114,13 +113,23 @@ JUNKTIME	rmb	2	;;(TAKEN FROM RICHS DEBUG STUFF)
 ;	New_Sleep	Task64,1$
 ;	rts	
 	JSR     $46BB
-	FDB	JUNKY
+;	FDB	JUNKY
 	FDB	TASK64
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	RTS		
 
-	VECTOR	EXEVECT
-	LDA	PANMASK		;player flying on?
+;	VECTOR	EXEVECT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;  Thankfully, there's three NOPs here at $510F
+;;  that we can use for inserting our hook.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	ORG	$510F
+	JSR	BAREXEV
+	ORG 	$F0CC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+BAREXEV	LDA	PANMASK		;player flying on?
 	BITA	#8
 	BNE	10$
 	RTS			;no?, that's all folks
