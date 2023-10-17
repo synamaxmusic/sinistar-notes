@@ -1,6 +1,8 @@
 ;; The following is code found in WITT/AOE.SRC, WITT/RICH.EQU,
 ;; and SAM/BARGRAPH.SRC that allows debug graphs to be drawn 
 ;; on screen.
+;;
+;; vasm6809_oldstyle -ast -Fbin -o BARGRAPH.bin BARGRAPH.src
 
 ROMSAVE SET	$F09F		;;(overwrite ROM/RAM test)
 BASSAVE	SET	$9897		;starting address of direct page ram ;;(starts at $9800)
@@ -15,7 +17,7 @@ SRAMSAV	SET	$DC94		;starting address of static ram      ;;(overwrites high score
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 PANMASK	EQU	$9880
-PMEMCTL	EQU	$BFFF		pseudo memory control byte
+PMEMCTL	EQU	$BFFF		;pseudo memory control byte
 MEMCTL	EQU	$C900		;memory control byte
 DCTRL	EQU	$CA00		;dma status byte
 DCONS	EQU	$CA01		;dma constant
@@ -37,6 +39,7 @@ WAgg  	EQU	$A03C		;;Warrior Aggression
 
 PALETTE	EQU	$50CB
 TEMP  	EQU	$9800
+TASK64	EQU	$A189
 
 	SETDP	$98
 
@@ -49,24 +52,24 @@ TEMP  	EQU	$9800
 ;	IFDEF	DIAGNOSE
 ;	PUSHORG	0
 	ORG 0
-DUMMY0		rmb	1		* 0 Invisible graph
-GMinutes	rmb	1	* 1 Play time in minutes
-GSeconds	rmb	1	* 2   and seconds.
-GAggression	rmb	1	* 3 Warrior aggression (high byte)
-GDeathTime	rmb	1	* 4 Time since Player death
-GDistance	rmb	0	* 5 Distance
-GANANG		rmb	1	* 5 Animation angle of squadron leader.
-GVelocity	rmb	0	* 6 Velocity
-GFLANG		rmb	1	* 6 Flight angle of squadron leader.
-DUMMY1		rmb	1		* 7 Special
-DUMMY2		rmb	1		* 8   Effects
-GMWaDrift	rmb	1	* 9 The # of Drifting warriors
-GMWaAttack	rmb	1	* A The # of Attacking warriors
-GMWaMine	rmb	1	* B The # of Mining warriors
-GMWaTail	rmb	1	* C The # of Guarding warriors
-GMWaInt		rmb	1	* D The # of Intercepting warriors
-DUMMY3		rmb	1		* E <SPECIAL EFFECT>
-DUMMY4		rmb	1		* F
+DUMMY0		rmb	1	;	* 0 Invisible graph
+GMinutes	rmb	1	;* 1 Play time in minutes
+GSeconds	rmb	1	;* 2   and seconds.
+GAggression	rmb	1	;* 3 Warrior aggression (high byte)
+GDeathTime	rmb	1	;* 4 Time since Player death
+GDistance	rmb	0	;* 5 Distance
+GANANG		rmb	1	;* 5 Animation angle of squadron leader.
+GVelocity	rmb	0	;* 6 Velocity
+GFLANG		rmb	1	;* 6 Flight angle of squadron leader.
+DUMMY1		rmb	1	;	* 7 Special
+DUMMY2		rmb	1	;	* 8   Effects
+GMWaDrift	rmb	1	;* 9 The # of Drifting warriors
+GMWaAttack	rmb	1	;* A The # of Attacking warriors
+GMWaMine	rmb	1	;* B The # of Mining warriors
+GMWaTail	rmb	1	;* C The # of Guarding warriors
+GMWaInt		rmb	1	;* D The # of Intercepting warriors
+DUMMY3		rmb	1	;	* E <SPECIAL EFFECT>
+DUMMY4		rmb	1	;	* F
 ;	IFLT	$10-*
 ;	ERR	Too Many Diagnostic Bars
 ;	ENDIF	0to15.
@@ -78,8 +81,9 @@ DUMMY4		rmb	1		* F
 BARGRAPH
 ;	PUSHORG	RAMSAVE
 	ORG	RAMSAVE
-PGRAPH	RMB	10	\	previous bar graph lengths ( values/4)
-GRAPH	RMB	10	/	bar graph values
+PGRAPH	RMB	10		;\ previous bar graph lengths ( values/4)
+GRAPH	RMB	10		;/ bar graph values
+JUNKTIME	rmb	2	;;(TAKEN FROM RICHS DEBUG STUFF)
 ;	PULLORG	RAMSAVE
 
 ;	PUSHORG	ROMSAVE
@@ -91,28 +95,37 @@ GRAPH	RMB	10	/	bar graph values
 	JSR	ROMSAVE		;; overwriting three NOPs at $8E55
 	ORG	ROMSAVE		;; and then we go back to $F09F
 	;;
-	LDD	#$9999		draw bar graph right end line
+	LDD	#$9999		;draw bar graph right end line
 	LDX	#$75DA		
-1$	STD	X		
+1$	STD	,X		
 	LEAX	$100,X		
 	CMPX	#$8EDA		
 	BLO	1$		
-	LDX	#PGRAPH		set bar graph lengths/zero initial values
+	LDX	#PGRAPH		;set bar graph lengths/zero initial values
 	LDU	#GRAPH		
 	LDD	#$0F3F
 2$	STB	A,X		
 	CLR	A,U		
 	DECA			
 	BPL	2$
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Richs code
+	clr	JUNKTIME
+	clr	JUNKTIME+1
+;	New_Sleep	Task64,1$
+;	rts	
+	JSR     $46BB
+	FDB	JUNKY
+	FDB	TASK64
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	RTS		
 
 	VECTOR	EXEVECT
-	LDA	PANMASK		player flying on?
+	LDA	PANMASK		;player flying on?
 	BITA	#8
 	BNE	10$
-	RTS			no?, that's all folks
+	RTS			;no?, that's all folks
 *
-10$	LDA	PMEMCTL		update bar graphs: dma inhibit off
+10$	LDA	PMEMCTL		;update bar graphs: dma inhibit off
 	PSHS	A
 ;	ANDA	#!N4
 	ANDA    #$FB		;;originally #!N4 (so FF - 4 = FB)
@@ -120,78 +133,86 @@ GRAPH	RMB	10	/	bar graph values
 	STA 	MEMCTL
 ;	LDA	#1!X4		* * *TEMPORARY FOR DMA BUG
 	LDA     #$05
-	STA	DHIGH		set DMA height
-	LDA	#$0F		initialize bar number
+	STA	DHIGH		;set DMA height
+	LDA	#$0F		;initialize bar number
 	LDX	#PGRAPH
 	LDU	#GRAPH
-1$	LDB	A,U		get new value
-	LSRB			convert to lengths
+1$	LDB	A,U		;get new value
+	LSRB			;convert to lengths
 	LSRB
-	CMPB	A,X		has it changed?
+	CMPB	A,X		;has it changed?
 	BEQ	4$
-	PSHS	CC		save change
-	STB	A,X		save new length
-	STA	TEMP		save bar #
-	PULS	CC		longer or shorter?
+	PSHS	CC		;save change
+	STB	A,X		;save new length
+	STA	TEMP		;save bar #
+	PULS	CC		;longer or shorter?
 	BMI	2$
-	EORB	#$04		* * *TEMPORARY FOR DMA BUG
-	STB	DWIDE		set DMA width
-	LDB	#$11		longer, compute color
+	EORB	#$04		;* * *TEMPORARY FOR DMA BUG
+	STB	DWIDE		;set DMA width
+	LDB	#$11		;longer, compute color
 	MUL
-	STB	DCONS		set DMA constant
-	LDA	TEMP		get bar #
-	ADDA	#$79		compute screen position
+	STB	DCONS		;set DMA constant
+	LDA	TEMP		;get bar #
+	ADDA	#$79		;compute screen position
 	LDB	#$9B
 	STD	DDEST		set DMA destination
 	BRA	3$
-2$	ADDD	#$799B		compute screen position
-	STD	DDEST		set DMA destination
-	COMB			compute width
+2$	ADDD	#$799B		;compute screen position
+	STD	DDEST		;set DMA destination
+	COMB			;compute width
 	ADDB	#$40+$9B
-	EORB	#$04		* * *TEMPORARY FOR DMA BUG
-	STB	DWIDE		set DMA width
-3$	LDA	#DCNS+DWBL	draw or erase bar
+	EORB	#$04		;* * *TEMPORARY FOR DMA BUG
+	STB	DWIDE		;set DMA width
+3$	LDA	#DCNS+DWBL	;draw or erase bar
 	STA	DCTRL
-	LDA	TEMP		restore bar # / wait for DMA
-	CLR	DCONS		zero constant
-4$	DECA			done?
+	LDA	TEMP		;restore bar # / wait for DMA
+	CLR	DCONS		;zero constant
+4$	DECA			;done?
 	BGE	1$
-	PULS	A		dma inhibit on
+	PULS	A		;dma inhibit on
 	STA	PMEMCTL
 	STA 	MEMCTL
 	RTS
 
-	PULLORG	ROMSAVE
+;	PULLORG	ROMSAVE
 
 *****
 *
 * WORK UTILITIES
 *
 *****
-	IFDEF	Diagnose	*****************************************
-	IFE	VERSION-9						*
-	ENDIF	VERSION							*
-	INCLVER	SAM,bargraph		* <<< Bar Graphs >>>	*
-	PUSHORG	Palette							*
+;	IFDEF	Diagnose	*****************************************
+;	IFE	VERSION-9						*
+;	ENDIF	VERSION							*
+;	INCLVER	SAM,bargraph		* <<< Bar Graphs >>>	*
+;	PUSHORG	Palette							*
+	ORG	PALETTE
 	fcb	@067,@377,@277,@256,@255,@244,@232,@067			*
 	fcb	@377,@311,@120,@113,@005,@007,@007,@067			*
-	PULLORG
+
+;;The following code was relocated to the BARGRAPH INIVECT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	PULLORG
 *									*
-	PUSHORG	RAMSAVE							*
-JUNKTIME	rmb	2						*
-	PULLORG	RAMSAVE							*
+;	PUSHORG	RAMSAVE							*
+;	RORG	RAMSAVE		;;(new)
+;JUNKTIME	rmb	2	;;(moving over to previous RAMSAVE)	*
+;	PULLORG	RAMSAVE							*
 *									*
-	PUSHORG	ROMSAVE
-	LOCAL								*
-	VECTOR	IniVect							*
-	clr	JUNKTIME						*
-	clr	JUNKTIME+1						*
-	New_Sleep	Task64,1$					*
-	rts								*
+;	PUSHORG	ROMSAVE
+;	LOCAL								*
+;	VECTOR	IniVect							*
+;	clr	JUNKTIME						*
+;	clr	JUNKTIME+1						*
+;	New_Sleep	Task64,1$					*
+;	rts								*
 **									*
 *	Time clock							*
 **									*
-1$	pshs	D,X,U							*
+;1$	pshs	D,X,U							*
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+JUNKY	pshs	D,X,U
 	ldd	JUNKTIME						*
 	addd	#(1*4)		* Or (2*4) on the 128 list.		*
 	std	JUNKTIME						*
