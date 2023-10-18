@@ -113,7 +113,7 @@ JUNKTIME	rmb	2	;;(TAKEN FROM RICHS DEBUG STUFF)
 ;	New_Sleep	Task64,1$
 ;	rts	
 	JSR     $46BB
-;	FDB	JUNKY
+	FDB	JUNKY
 	FDB	TASK64
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	RTS		
@@ -127,7 +127,7 @@ JUNKTIME	rmb	2	;;(TAKEN FROM RICHS DEBUG STUFF)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ORG	$510F
 	JSR	BAREXEV
-	ORG 	$F0CC
+	ORG 	$F0CE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 BAREXEV	LDA	PANMASK		;player flying on?
 	BITA	#8
@@ -164,7 +164,7 @@ BAREXEV	LDA	PANMASK		;player flying on?
 	LDA	TEMP		;get bar #
 	ADDA	#$79		;compute screen position
 	LDB	#$9B
-	STD	DDEST		set DMA destination
+	STD	DDEST		;set DMA destination
 	BRA	3$
 2$	ADDD	#$799B		;compute screen position
 	STD	DDEST		;set DMA destination
@@ -196,8 +196,8 @@ BAREXEV	LDA	PANMASK		;player flying on?
 ;	INCLVER	SAM,bargraph		* <<< Bar Graphs >>>	*
 ;	PUSHORG	Palette							*
 	ORG	PALETTE
-	fcb	@067,@377,@277,@256,@255,@244,@232,@067			*
-	fcb	@377,@311,@120,@113,@005,@007,@007,@067			*
+	fcb	@067,@377,@277,@256,@255,@244,@232,@067			
+	fcb	@377,@311,@120,@113,@005,@007,@007,@067			
 
 ;;The following code was relocated to the BARGRAPH INIVECT
 
@@ -220,84 +220,89 @@ BAREXEV	LDA	PANMASK		;player flying on?
 *	Time clock							*
 **									*
 ;1$	pshs	D,X,U							*
+	;;
+	ORG	$F13B		;;(new)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 JUNKY	pshs	D,X,U
-	ldd	JUNKTIME						*
-	addd	#(1*4)		* Or (2*4) on the 128 list.		*
-	std	JUNKTIME						*
-	asla								*
-	asla								*
-	sta	Graph+GMinutes						*
-	stb	Graph+GSeconds						*
-	IFE	1	***************** This is turned off! ***********
+	ldd	JUNKTIME						
+	addd	#(1*4)		;* Or (2*4) on the 128 list.		
+	std	JUNKTIME					
+	asla								
+	asla								
+	sta	GRAPH+GMinutes						
+	stb	GRAPH+GSeconds
 **									*
 *	Monitor Warrior Aggression					*
 **									*
-	lda	WAgg			* Monitor the high byte	of	*
-	asla				*   (shifted to scale)		*
-	sta	Graph+GAggression	*   the warrior aggression	*
-**
-*	Monitor Missions
-**
-	ldx	#Temp
-	clr	TGMWaDrift,X
-	clr	TGMWaAttack,X
-	clr	TGMWaMine,X
-	clr	TGMWaTail,X
-	clr	TGMWaInt,X
-
-	ldu	#Ground
-	cmpu	KeyClee+2
-	beq	4$
-	ldu	[KeyClee+2]
-2$	lda	OSMIS,U
-	cmpa	#OMWaSav
-	bge	3$
-	asra
-	ldb	A,X	
-	addb	#(4.*4.)
-	stb	A,X	
-3$	ldu	[OSCTYPT,U]
-	cmpu	#Ground
-	bne	2$
-
-4$	lda	TGMWaDrift,X
-	sta	Graph+GMWaDrift
-	lda	TGMWaAttack,X
-	sta	Graph+GMWaAttack
-	lda	TGMWaMine,X
-	sta	Graph+GMWaMine
-	lda	TGMWaTail,X
-	sta	Graph+GMWaTail
-	lda	TGMWaInt,X
-	sta	Graph+GMWaInt
-	ENDIF	1		*******	Turned off for now. *************
-	puls	D,X,U							*
-	SLEEP	LOOP							*
-	PULLORG	ROMSAVE							*
-	ENDIF	Diagnose	*****************************************
+	lda	WAgg			;* Monitor the high byte	of	*
+	asla				;*   (shifted to scale)		*
+	sta	GRAPH+GAggression	;*   the warrior aggression	*
+;**
+;*	Monitor Missions
+;**
+;	ldx	#Temp
+;	clr	TGMWaDrift,X
+;	clr	TGMWaAttack,X
+;	clr	TGMWaMine,X
+;	clr	TGMWaTail,X
+;	clr	TGMWaInt,X
+;
+;	ldu	#Ground
+;	cmpu	KeyClee+2
+;	beq	4$
+;	ldu	[KeyClee+2]
+;2$	lda	OSMIS,U
+;	cmpa	#OMWaSav
+;	bge	3$
+;	asra
+;	ldb	A,X	
+;	addb	#(4.*4.)
+;	stb	A,X	
+;3$	ldu	[OSCTYPT,U]
+;	cmpu	#Ground
+;	bne	2$
+;
+;4$	lda	TGMWaDrift,X
+;	sta	Graph+GMWaDrift
+;	lda	TGMWaAttack,X
+;	sta	Graph+GMWaAttack
+;	lda	TGMWaMine,X
+;	sta	Graph+GMWaMine
+;	lda	TGMWaTail,X
+;	sta	Graph+GMWaTail
+;	lda	TGMWaInt,X
+;	sta	Graph+GMWaInt
+;	ENDIF	1		*******	Turned off for now. *************
+	puls	D,X,U							
+;	SLEEP	LOOP							*
+	LDD    -$2,Y
+	FDB	$DD42		;;(was originally STD  $42, but vasm uses a different opcode)
+	RTS
+;	PULLORG	ROMSAVE							*
+;	ENDIF	Diagnose	*****************************************	
 	LOCAL
-	NLIST
-BCF	MACRO	A1,A2,A3
-	IFN	A1
-	FCB	A1
+;	NLIST
+BCF	MACRO	\1,\2,\3
+	IFNE	\1
+	FCB	\1
 	ELSE
 	RMB	1
 	ENDIF
-	IFN	A2
-	FCB	A2
+	IFNE	\2
+	FCB	\2
 	ELSE
 	RMB	1
 	ENDIF
-	IFN	A3
-	FCB	A3
+	IFNE	\3
+	FCB	\3
 	ELSE
 	RMB	1
 	ENDIF
 	RMB	7
 	ENDM
-	IFE	1
-	PUSHORG	$E4E
+;	IFE	1
+;	PUSHORG	$E4E
+	ORG	$0E4E
 	BCF	$5B,$BB,$BB
 	BCF	$B5,$00,$00
 	BCF	$5B,$B5,$00
@@ -313,4 +318,35 @@ BCF	MACRO	A1,A2,A3
 	BCF	$00,$00,$AB
 	BCF	$AB,$BB,$BB
 	BCF	$00,$00,$AB
-	PULLORG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+;; Patch to avoid triggering copyright protection and to skip
+;; ROM/RAM "Rug" test which has been overwritten by this new code.
+	ORG	$F063
+	NOP
+	NOP
+	ORG	$F069
+	NOP
+	NOP
+	NOP
+
+;; Patch to clear out ROM checksum table (this is probably unnecessary in this mod)
+
+	ORG	$F34F
+	FDB	$0000    
+	FDB	$1000    
+	FDB	$2000   
+	FDB	$3000  
+	FDB	$4000  
+	FDB	$5000  
+	FDB	$6000  
+	FDB	$7000  
+	FDB	$8000  
+	FDB	$9000  
+	FDB	$A000  
+	FDB	$B000  
+	FDB	$C000  
+	FDB	$D000  
+	FDB	$E000  
+	FDB	$F000  
+	END
