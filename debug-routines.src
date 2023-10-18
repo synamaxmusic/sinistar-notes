@@ -2,7 +2,7 @@
 ;; and SAM/BARGRAPH.SRC that allows debug graphs to be drawn 
 ;; on screen.
 ;;
-;; vasm6809_oldstyle -ast -Fbin -o BARGRAPH.bin BARGRAPH.src
+;; vasm6809_oldstyle -ast -Fbin -o debug-routines.bin debug-routines.src
 
 ROMSAVE SET	$F09F		;;(overwrite ROM/RAM test)
 BASSAVE	SET	$9897		;starting address of direct page ram ;;(starts at $9800)
