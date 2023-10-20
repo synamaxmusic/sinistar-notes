@@ -6286,6 +6286,7 @@
 ;ISCANN
 2DF7: 01 10          NEG    $10
 2DF9: 01 10          NEG    $10
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; END OF IMAGE DATA
 ;;
@@ -6302,6 +6303,11 @@
 2E08: 4F             CLRA
 2E09: 5F             CLRB
 2E0A: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF WITT/FIXSINI.SRC PATCH
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 2E0B: 49             ROLA
 2E0C: 4C             INCA
 2E0D: 4C             INCA
@@ -6325,25 +6331,40 @@
 2E21: 4E             XCLRA
 2E22: 43             COMA
 2E23: 2E 			;2E is always the end of the Copyright string
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/PANEL.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; control panel switch vector table (must assemble before switch routines)
 ;PANEL
 2E24: E1 95
-2E26: E1
-2E27: 95 E1          BITA   $E1
-2E29: 95 E1          BITA   $E1
-2E2B: 95 6C          BITA   $6C
-2E2D: 83 2E E3       SUBD   #$2EE3
-2E30: 6C 8A          INC    F,X
-2E32: 2F 0D          BLE    $2E41
-2E34: E1 95          CMPB   [B,X]
-2E36: E1 95          CMPB   [B,X]
-2E38: E1 95          CMPB   [B,X]
-2E3A: E1 95          CMPB   [B,X]
-2E3C: 6D 7D          TST    -$3,S
-2E3E: 6C F6          INC    [A,S]
-2E40: 6C CA          INC    F,U
-2E42: 6C BA          INC    [F,Y]
+2E26: E1 95
+2E28: E1 95
+2E2A: E1 95
+;START2 
+2E2C: 6C 83
+2E2E: 2E E3
+;START1   
+2E30: 6C 8A       
+2E32: 2F 0D
+2E34: E1 95
+2E36: E1 95
+2E38: E1 95
+2E3A: E1 95
+;SBOMBB
+2E3C: 6D 7D
+2E3E: 6C F6
+;FIREB
+2E40: 6C CA								;;$6CCA referenced in WITT/FIXBUTTO.SRC
+2E42: 6C BA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; Start of SAM/INITALL.SRC
+;; END OF PANEL.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/INITALL.SRC
 ;;
 ;RTS
 2E44: 39             RTS
@@ -9181,7 +9202,16 @@
 431F: 4E          						;N
 4320: 43          						;C
 4321: 2E          						;.
-;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/GETOBJ.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SCREEN LIST ROUTINES
+;;
+; get object add char and image	  		pass char addr in D, returns obj wsa in X
+;GETCOBJ	
 4322: 34          
 4323: 06 8D          ROR    $8D
 4325: 29 EC          BVS    $4313
@@ -9189,6 +9219,8 @@
 432B: C3 00 0A       ADDD   #$000A
 432E: ED E4          STD    ,S
 4330: EC F1          LDD    [,S++]
+; add image to object	      			pass image descriptor addr in D and obj wsa in X
+;IMGOBJ	
 4332: 34 46          PSHS   U,D
 4334: EE E4          LDU    ,S
 4336: EF 88 14       STU    $14,X
@@ -9209,6 +9241,8 @@
 4358: DD 3D          STD    $3D
 435A: 6F 88 10       CLR    $10,X
 435D: 39             RTS
+; put object on screen list				pass object wsa in X
+;PUTOBJ	
 435E: 34 62          PSHS   U,Y,A
 4360: A6 06          LDA    $6,X
 4362: CE 98 33       LDU    #$9833
@@ -9227,11 +9261,18 @@
 437F: AB C4          ADDA   ,U
 4381: A7 88 11       STA    $11,X
 4384: 35 E2          PULS   A,Y,U,PC
+; kill object on screen list			pass object wsa in X
+;KILLOBJ	
 4386: CC 43 93       LDD    #$4393
 4389: ED 88 18       STD    $18,X
 438C: CC 4B B5       LDD    #$4BB5
 438F: ED 88 12       STD    $12,X
 4392: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF GETOBJ.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;
 4393: AE A8 14       LDX    $14,Y
 4396: A6 84          LDA    ,X
 4398: E6 2B          LDB    $B,Y
@@ -9689,6 +9730,33 @@
 477D: 5F             CLRB
 477E: ED 1E          STD    -$2,X
 4780: 35 C6          PULS   D,U,PC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SAM/FUNCTION.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; MATH FUNCTIONS
+;;
+;FUNCTIONS
+;
+;*****
+;*
+;* RECTANG
+;*	Rectangular to angle conversion.
+;*
+;* History:
+;*	Written by Sam.  Rich required the work registers to be saved 9/22/82.
+;*
+;* Needs:
+;*	A = LONG distance
+;*	B = SHORT distance
+;*
+;* Returns:
+;*	A = Signed angle.  A full circle is 256 degrees.
+;*
+;*****
+;RECTANG	
 4782: 34 14          PSHS   X,B
 4784: ED E3          STD    ,--S
 4786: 2A 01          BPL    $4789
@@ -14107,6 +14175,7 @@
 6A52: A7 2C          STA    $C,Y
 6A54: 35 02          PULS   A
 6A56: 39             RTS
+;WASHODDS
 6A57: 34 06          PSHS   D
 6A59: CC 00 A0       LDD    #$00A0
 6A5C: BD 47 FA       JSR    $47FA
@@ -14258,11 +14327,19 @@
 6BBB: BD 64 38       JSR    $6438
 6BBE: AE 9F 50 35    LDX    [$5035]
 6BC2: BD 6B EA       JSR    $6BEA
+;;
+;; WITT/FIXSINI.SRC PATCH
+;;
 6BC5: BD 2D FB       JSR    $2DFB
+;;
 6BC8: BD 65 40       JSR    $6540
 6BCB: AE 9F 50 35    LDX    [$5035]
 6BCF: BD 6C 07       JSR    $6C07
+;;
+;; WITT/FIXSINI.SRC PATCH
+;;
 6BD2: BD 2D FB       JSR    $2DFB
+;;
 6BD5: BD 65 69       JSR    $6569
 6BD8: AE 9F 98 78    LDX    [$9878]
 6BDC: BD 64 79       JSR    $6479
@@ -14301,6 +14378,9 @@
 6C24: 34 20          PSHS   Y
 6C26: 7D A1 B9       TST    $A1B9
 6C29: 26 17          BNE    $6C42
+;;
+;; WITT/FIXSINI.SRC PATCH
+;;
 6C2B: 12             NOP
 6C2C: 12             NOP
 6C2D: 12             NOP
@@ -14311,6 +14391,7 @@
 6C32: 12             NOP
 6C33: 12             NOP
 6C34: 12             NOP
+;;
 6C35: 0D 96          TST    $96
 6C37: 27 05          BEQ    $6C3E
 6C39: BD 68 CC       JSR    $68CC
@@ -14328,8 +14409,9 @@
 6C51: 1A 01          ORCC   #$01
 6C53: 35 20          PULS   Y
 6C55: 39             RTS
-6C56: 7E 6F 4C       JMP    $6F4C
-6C59: 7E 8C 8C       JMP    $8C8C
+;;STUBS
+6C56: 7E 6F 4C       JMP    $6F4C		;;ZADDVIB
+6C59: 7E 8C 8C       JMP    $8C8C		;;ZAMSINI
 6C5C: 42             XNCA
 6C5D: 39             RTS
 6C5E: 7E 6D 30       JMP    $6D30
@@ -14342,9 +14424,14 @@
 6C73: 7E 71 8D       JMP    $718D
 6C76: 7E 6F 30       JMP    $6F30
 6C79: 7E 6F 14       JMP    $6F14
-6C7C: 7E 7B B0       JMP    $7BB0
+6C7C: 7E 7B B0       JMP    $7BB0		;;ZRSTPOP
 6C7F: 39             RTS
-6C80: 7E 79 EF       JMP    $79EF
+6C80: 7E 79 EF       JMP    $79EF		;;ZTAUNT
+;;;;;;;;;;;;;;;;;;;;;
+;;
+;; WITT/BUTTON.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;
 6C83: 7C A1 B4       INC    $A1B4
 6C86: 7C A1 B4       INC    $A1B4
 6C89: 39             RTS
@@ -14450,6 +14537,12 @@
 6D78: ED 0E          STD    $E,X
 6D7A: 35 36          PULS   D,X,Y
 6D7C: 39             RTS
+;****
+;*
+;* FIRE SINIBOMB
+;*	SWITCH	SBOMBB,OPEN
+;*
+;*****
 6D7D: 8E BF 1B       LDX    #$BF1B
 6D80: BD 4A 5F       JSR    $4A5F
 6D83: 4D             TSTA
@@ -14473,8 +14566,10 @@
 6DAC: 26 06          BNE    $6DB4
 6DAE: BD 32 0F       JSR    $320F
 6DB1: 7E 47 55       JMP    $4755
+;
 6DB4: BD 6C 93       JSR    $6C93
 6DB7: 34 36          PSHS   Y,X,D
+;;Programmers names
 6DB9: 8E 57 66       LDX    #$5766
 6DBC: BD 2E 44       JSR    $2E44
 6DBF: C6 FF          LDB    #$FF
@@ -14606,6 +14701,11 @@
 6F10: DD 42          STD    $42
 6F12: 39             RTS
 6F13: 39             RTS
+;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF BUTTON.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;
 6F14: 34 06          PSHS   D
 6F16: AE 98 1C       LDX    [$1C,X]
 6F19: EE 04          LDU    $4,X
@@ -15831,6 +15931,9 @@
 79EA: EC 3E          LDD    -$2,Y
 79EC: DD 42          STD    $42
 79EE: 39             RTS
+;*
+;*		Taunt - speak out a random taunt
+;*
 79EF: 34 02          PSHS   A
 79F1: 86 00          LDA    #$00
 79F3: BD 48 02       JSR    $4802
@@ -15865,22 +15968,28 @@
 7A37: 6C 08          INC    $8,X
 7A39: 35 02          PULS   A
 7A3B: 39             RTS
+;DTIMER ROUTINE
 7A3C: 86 01          LDA    #$01
 7A3E: BD 48 3E       JSR    $483E
 7A41: A0 3F          SUBA   -$1,Y
 7A43: EC 3E          LDD    -$2,Y
 7A45: DD 42          STD    $42
 7A47: 39             RTS
+;QUOTA
 7A48: 03 01          COM    $01
 7A4A: 03 09          COM    $09
 7A4C: 00 06          NEG    $06
 7A4E: 01 01          NEG    $01
 7A50: 03 01          COM    $01
+;* Mission assignments - SHOULD STAY IN ROM
+;MisAss
 7A52: 02 04          XNC    $04
 7A54: 02 02          XNC    $02
 7A56: 00 06          NEG    $06
 7A58: 04 08          LSR    $08
 7A5A: 04 08          LSR    $08
+;*			Base Priorities - temporarily in ROM
+;Prios
 7A5C: 58             ASLB
 7A5D: 58             ASLB
 7A5E: 48             ASLA
@@ -16048,6 +16157,7 @@
 7B6F: AA 7F          ORA    -$1,S
 7B71: 59             ROLB
 7B72: AD 00          JSR    $0,X
+;InPopD
 7B74: 00 02          NEG    $02
 7B76: 00 00          NEG    $00
 7B78: 00 00          NEG    $00
@@ -16079,6 +16189,7 @@
 7BAA: A0 22          SUBA   $2,Y
 7BAC: 00 A0          NEG    $A0
 7BAE: 28 00          BVC    $7BB0
+;RstPop
 7BB0: 34 76          PSHS   U,Y,X,D
 7BB2: 4F             CLRA
 7BB3: 5F             CLRB
@@ -16145,11 +16256,13 @@
 7C47: BD 33 B4       JSR    $33B4
 7C4A: 35 76          PULS   D,X,Y,U
 7C4C: 39             RTS
+;SloLod
 7C4D: E6 80          LDB    ,X+
 7C4F: E7 C0          STB    ,U+
 7C51: 11 B3 A1 C0    CMPU   $A1C0
 7C55: 25 F6          BCS    $7C4D
 7C57: 39             RTS
+;IAMVECT (UNUSED)
 7C58: 12             NOP
 7C59: 12             NOP
 7C5A: 12             NOP
@@ -16157,9 +16270,14 @@
 7C5E: 7C 64 08       INC    $6408
 7C61: A1 5F          CMPA   -$1,U
 7C63: 39             RTS
-7C64: 7E 80 5E       JMP    $805E
-7C67: 7E 7E 29       JMP    $7E29
-7C6A: 7E FF 90       JMP    $FF90
+7C64: 7E 80 5E       JMP    $805E		;ZATTRACT
+7C67: 7E 7E 29       JMP    $7E29		;ZWRXQU
+7C6A: 7E FF 90       JMP    $FF90		;LAST.SRC Patch before ZPlxQue
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; END OF FALS/N1ALL.SRC
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 7C6D: 34 76          PSHS   U,Y,X,D
 7C6F: 86 07          LDA    #$07
 7C71: 97 1E          STA    $1E
