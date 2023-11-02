@@ -56,11 +56,49 @@ SAMS.EQU
 RICH
 
 RICHS.SRC
+	INCLVER	RICH,R0
+		*****
+		*
+		* This module checks that each of the symbols needed are defined.
+		* If they weren't defined, the result would be that routines in this
+		* directory would be created instead of replacing (overriding) the
+		* stubs in earlier parts of the version release.
+		*
+		*****
+		SYMVER	MESLEN,MESLEN	is missing from RICHS.SYM	(MesLength)
+		SYMVER	PHRLEN,PHRLEN	is missing from RICHS.SYM	(PhrLength)
+		SYMVER	PLSHOO,PLSHOO	is missing from RICHS.SYM	(PlShoot)
+	INCLVER	RICH,R2
+		INCLVER	RICH,symrich		* Rich's symbols
+		INCLVER	RICH,ramrich		* Ram variables
+		INCLVER	RICH,inirich		* VECTOR INIVECTs
+
+		INCLVER	RICH,disp		* Message display routines
+		INCLVER	RICH,display		* Message display macros
+
+	* * *	INCLVER	RICH,button		* Control panel routines
+		INCLVER	RICH,collision		* Collision effects
+		INCLVER	RICH,copyright		* EBCDIC copyright
+		INCLVER	RICH,difficult		* Difficulty factor tables
+		INCLVER	RICH,krsini		* Sinistar Killing routine
+		INCLVER	RICH,leavesec		* Leaving sector vectors
+		INCLVER	RICH,tables
+		INCLVER	RICH,worker
+		INCLVER	RICH,warrior
+		INCLVER	RICH,sinibomb
+		INCLVER	RICH,sini
+
+		INCLVER	RICH,stubs		* To fake Noah's stuff.
 $!
 $! Reset RICHS.SET and RICHS.SYM
 $!
 RICHS.EQU
 RICHS2.SRC
+	SYMCHK	BombsAway
+	SYMCHK	Empty
+	SYMCHK	NotEmpty
+	LIST				* Part 2 source files:
+	INCLVER	RICH,BUTTON
 $!
 $! Reset RICHS2.SET and RICHS2.SYM
 $!
