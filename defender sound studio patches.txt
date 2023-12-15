@@ -92,3 +92,9 @@ Airplane dive
   "sound": "Pulses",
   "params": [128,1,128,3,0,192,-1,255,12]
 }
+
+Recognizer
+{
+  "sound": "Pulses",
+  "params": [255,128,0,24,0,1152,-10,255,4]
+}
