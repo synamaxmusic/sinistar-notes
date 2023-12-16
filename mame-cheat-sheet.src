@@ -347,3 +347,25 @@ There is a DMA bug that causes issues with graphics and extra care had to be tak
 for this issue.  The UpBombs routines that updates the HUD showing all the bombs only draws one bomb at a time.
 If multiple bombs are picked up, it only draws the last bomb collected.
 
+----------------------------------------------
+Replace player ship fire sound with fire noise from "Blaster"
+(This overwrites one of the unused Noise sound effects and changes the player fire sound call to use this sound ID instead)
+
+soundcpu.rq@f686=86A5971186859712
+soundcpu.rq@f68e=860397138680971D
+soundcpu.rq@f696=86FF9714CE0300DF
+soundcpu.rq@f69e=1596114824029812
+soundcpu.rq@f6a6=B70400D613092705
+soundcpu.rq@f6ae=5A26FA20EED613D0
+soundcpu.rq@f6b6=14D713D11D2704DE
+soundcpu.rw@f6be=1520
+soundcpu.rw@f6c0=E039
+
+maincpu.rb@4daf=b6
+----------------------------------------------
+Disable Warrior firing
+
+maincpu.rw@6a42=8600	;Load zero instead of WAgg in Inhibit Routine
+maincpu.rb@6a44=12
+
+maincpu.rb@6917=ff	;anda	#PWaShInhibit is now ANDA #$FF (instead of 0F) (Found in WITT/SHOOT.SRC)
